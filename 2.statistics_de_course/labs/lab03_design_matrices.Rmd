@@ -1,0 +1,82 @@
+# Lab 3: Design Matrices (Experimental Design)
+
+## Objectives
+
+- Build design matrices for common transcriptomics experiments
+- Define contrasts clearly
+- Detect confounding (batch = condition)
+
+## Outputs
+
+- Save design notes to `../results/design_notes.md`
+
+---
+
+```{r setup, message=FALSE}
+if (!requireNamespace("airway", quietly = TRUE)) {
+  stop("Please install the 'airway' package (see setup.md).")
+}
+library(airway)
+library(SummarizedExperiment)
+```
+
+```{r load}
+data("airway")
+colData(airway)[, 1:min(8, ncol(colData(airway)))]
+```
+
+## A) Scenario 1: Simple two-group comparison
+
+```{r simple_design}
+df <- as.data.frame(colData(airway))
+df$condition <- droplevels(df$dex)
+
+design1 <- model.matrix(~ condition, data = df)
+head(design1)
+```
+
+## B) Scenario 2: Add batch (if present)
+
+```{r batch_design}
+# If you have a batch column, include it. Airway has "cell" and "dex".
+# We'll treat "cell" as a nuisance covariate to demonstrate.
+design2 <- model.matrix(~ cell + condition, data = df)
+head(design2)
+```
+
+## C) Scenario 3: Paired / donor design (template)
+
+```{r paired_template}
+# Template: if you had donors and repeated measures:
+# design3 <- model.matrix(~ donor + condition, data=df)
+cat("Paired design template: ~ donor + condition\n")
+```
+
+## D) Confounding check
+
+```{r confounding_check}
+tbl <- table(df$cell, df$condition)
+tbl
+cat("\nIf any row/column combination is missing entirely, you may have confounding.\n")
+```
+
+## Write minimal notes
+
+```{r write_notes}
+dir.create("../results", showWarnings = FALSE)
+out <- "../results/design_notes.md"
+cat(
+  "# Design Notes\n\n",
+  "## Scenario 1\n",
+  "- Model: `~ condition`\n\n",
+  "## Scenario 2\n",
+  "- Model: `~ cell + condition` (example nuisance covariate)\n\n",
+  "## Scenario 3\n",
+  "- Template: `~ donor + condition`\n\n",
+  sep = "",
+  file = out
+)
+cat("Wrote", out, "\n")
+```
+
+

@@ -1,0 +1,157 @@
+---
+title: "Lab 2: Probability Distributions for Count Data"
+subtitle: "Module 2 - Distributions"
+output: html_document
+---
+
+## Objectives
+- Visualize Poisson and negative binomial distributions
+- Fit distributions to RNA-seq data
+- Understand overdispersion
+
+## Setup
+
+```{r setup, message=FALSE}
+library(ggplot2)
+library(MASS)
+library(airway)
+```
+
+## 1. Poisson Distribution
+
+```{r poisson}
+# Poisson: mean = variance
+lambda <- 10
+x <- 0:30
+
+# Poisson probabilities
+poisson_probs <- dpois(x, lambda)
+
+plot(x, poisson_probs, type = "h", lwd = 3, col = "steelblue",
+     main = paste("Poisson Distribution (λ =", lambda, ")"),
+     xlab = "Count", ylab = "Probability")
+
+# Check mean and variance
+cat("Theoretical mean:", lambda, "\n")
+cat("Theoretical variance:", lambda, "\n")
+```
+
+## 2. Negative Binomial Distribution
+
+```{r negbin}
+# Negative binomial: allows variance > mean
+mu <- 10
+size <- 2  # smaller size = more overdispersion
+
+nb_probs <- dnbinom(x, mu = mu, size = size)
+
+# Compare to Poisson
+plot(x, poisson_probs, type = "h", lwd = 3, col = "steelblue",
+     main = "Poisson vs Negative Binomial",
+     xlab = "Count", ylab = "Probability", ylim = c(0, max(c(poisson_probs, nb_probs))))
+lines(x + 0.2, nb_probs, type = "h", lwd = 3, col = "coral")
+legend("topright", c("Poisson", "Negative Binomial"), 
+       col = c("steelblue", "coral"), lwd = 3)
+```
+
+## 3. Effect of Dispersion
+
+```{r dispersion}
+par(mfrow = c(1, 3))
+
+sizes <- c(100, 10, 1)  # high to low precision
+colors <- c("green", "orange", "red")
+
+for (i in 1:3) {
+  probs <- dnbinom(x, mu = 10, size = sizes[i])
+  plot(x, probs, type = "h", lwd = 3, col = colors[i],
+       main = paste("Size =", sizes[i]),
+       xlab = "Count", ylab = "Probability")
+}
+
+par(mfrow = c(1, 1))
+```
+
+## 4. Fitting to Real Data
+
+```{r fit-real}
+data(airway)
+counts <- assay(airway)
+
+# Select a highly expressed gene
+high_expr_gene <- counts["ENSG00000000003", ]
+
+# Fit Poisson
+pois_fit <- fitdistr(high_expr_gene, "Poisson")
+
+# Fit Negative Binomial
+nb_fit <- fitdistr(high_expr_gene, "Negative Binomial")
+
+cat("Gene ENSG00000000003\n")
+cat("Observed mean:", mean(high_expr_gene), "\n")
+cat("Observed variance:", var(high_expr_gene), "\n")
+cat("\nPoisson lambda:", pois_fit$estimate, "\n")
+cat("NB mu:", nb_fit$estimate["mu"], "\n")
+cat("NB size:", nb_fit$estimate["size"], "\n")
+```
+
+## 5. Visualize Fit
+
+```{r visualize-fit}
+# Histogram of observed data
+hist(high_expr_gene, breaks = 20, freq = FALSE, col = "lightgray",
+     main = "Observed vs Fitted Distributions",
+     xlab = "Count")
+
+# Overlay fitted distributions
+x_range <- seq(min(high_expr_gene), max(high_expr_gene), by = 1)
+
+# Poisson
+lines(x_range, dpois(x_range, pois_fit$estimate), 
+      col = "blue", lwd = 2, type = "b")
+
+# Negative binomial
+lines(x_range, dnbinom(x_range, 
+                       mu = nb_fit$estimate["mu"], 
+                       size = nb_fit$estimate["size"]), 
+      col = "red", lwd = 2, type = "b")
+
+legend("topright", c("Observed", "Poisson", "Neg. Binomial"),
+       col = c("gray", "blue", "red"), lwd = c(10, 2, 2))
+```
+
+## 6. Overdispersion Across Genes
+
+```{r overdispersion}
+# Calculate mean and variance for all genes
+gene_stats <- data.frame(
+  mean = rowMeans(counts),
+  var = apply(counts, 1, var)
+)
+gene_stats <- gene_stats[gene_stats$mean > 0, ]
+
+# Plot
+ggplot(gene_stats, aes(x = log10(mean), y = log10(var))) +
+  geom_point(alpha = 0.3, size = 0.5) +
+  geom_abline(slope = 1, intercept = 0, color = "red", size = 1) +
+  labs(x = "Log10(Mean)", y = "Log10(Variance)",
+       title = "Overdispersion in RNA-seq Data",
+       subtitle = "Red line: Poisson expectation (var = mean)") +
+  theme_minimal()
+```
+
+## Exercise Questions
+
+1. What happens to the negative binomial shape as `size` decreases?
+2. Why does the negative binomial fit better than Poisson?
+3. Looking at the overdispersion plot, are most genes over- or under-dispersed?
+4. What would the plot look like if Poisson were appropriate?
+
+```{r exercises}
+# Your answers here
+
+```
+
+---
+*End of Lab 2*
+

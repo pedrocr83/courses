@@ -1,0 +1,8 @@
+sample_id,donor_id,condition,tissue,timepoint,batch,lane,chemistry_version,sequencing_date,notes
+SAMPLE001,DONOR01,control,PBMC,day0,batch1,L001,v3,2024-01-15,
+SAMPLE002,DONOR01,treated,PBMC,day7,batch1,L001,v3,2024-01-15,
+SAMPLE003,DONOR02,control,PBMC,day0,batch1,L002,v3,2024-01-15,
+SAMPLE004,DONOR02,treated,PBMC,day7,batch1,L002,v3,2024-01-15,
+SAMPLE005,DONOR03,control,PBMC,day0,batch2,L001,v3,2024-01-22,
+SAMPLE006,DONOR03,treated,PBMC,day7,batch2,L001,v3,2024-01-22,
+

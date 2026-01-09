@@ -1,0 +1,71 @@
+# Lab 6: Multiple Testing and FDR (Benjamini–Hochberg)
+
+## Objectives
+
+- Simulate many hypothesis tests
+- See why p<0.05 fails at scale
+- Apply BH correction and interpret FDR
+
+## Outputs
+
+- Save plot to `../figures/lab06_fdr_simulation.png`
+
+---
+
+```{r setup, message=FALSE}
+set.seed(123)
+dir.create("../figures", showWarnings = FALSE)
+```
+
+```{r simulate}
+n_tests <- 10000
+pi0 <- 0.95  # fraction truly null
+n_null <- round(n_tests * pi0)
+n_alt <- n_tests - n_null
+
+# Null p-values uniform(0,1)
+p_null <- runif(n_null)
+
+# Alternative p-values biased toward 0 (simple beta distribution for demo)
+p_alt <- rbeta(n_alt, shape1 = 0.4, shape2 = 1)
+
+p <- c(p_null, p_alt)
+truth <- c(rep("null", n_null), rep("alt", n_alt))
+```
+
+```{r bh}
+alpha <- 0.05
+sig_raw <- p < alpha
+
+padj <- p.adjust(p, method = "BH")
+sig_bh <- padj < alpha
+
+cat("Raw significant (p<0.05):", sum(sig_raw), "\n")
+cat("BH significant (FDR<0.05):", sum(sig_bh), "\n")
+
+false_discoveries_raw <- sum(sig_raw & truth == "null")
+false_discoveries_bh <- sum(sig_bh & truth == "null")
+
+cat("False discoveries (raw):", false_discoveries_raw, "\n")
+cat("False discoveries (BH):", false_discoveries_bh, "\n")
+```
+
+```{r plot, fig.width=7, fig.height=4}
+hist(p, breaks = 50, col = "grey80", border = "white",
+     main = "P-value distribution (mixture of null + alternative)",
+     xlab = "p-value")
+abline(v = 0.05, col = "red", lwd = 2, lty = 2)
+legend("topright", legend = c("p=0.05"), col = c("red"), lty = 2, lwd = 2, bty = "n")
+```
+
+```{r save_plot}
+png("../figures/lab06_fdr_simulation.png", width = 1200, height = 600, res = 150)
+hist(p, breaks = 50, col = "grey80", border = "white",
+     main = "P-value distribution (mixture of null + alternative)",
+     xlab = "p-value")
+abline(v = 0.05, col = "red", lwd = 2, lty = 2)
+dev.off()
+cat("Wrote ../figures/lab06_fdr_simulation.png\n")
+```
+
+

@@ -1,0 +1,84 @@
+# Lab 4: Normalization Methods
+
+## Objectives
+
+- See why raw counts are misleading
+- Compute size factors (DESeq2 median-of-ratios)
+- Compare library-size normalization vs DESeq2 size factors
+
+## Outputs
+
+- Save a small summary to `../results/normalization_notes.md`
+
+---
+
+```{r setup, message=FALSE}
+if (!requireNamespace("DESeq2", quietly = TRUE)) {
+  stop("Please install DESeq2 (see setup.md).")
+}
+if (!requireNamespace("airway", quietly = TRUE)) {
+  stop("Please install airway (see setup.md).")
+}
+library(DESeq2)
+library(airway)
+library(SummarizedExperiment)
+```
+
+```{r load}
+data("airway")
+df <- as.data.frame(colData(airway))
+df$condition <- droplevels(df$dex)
+
+dds <- DESeqDataSet(airway, design = ~ condition)
+dds
+```
+
+## A) Library sizes
+
+```{r libsizes}
+libsize <- colSums(counts(dds))
+summary(libsize)
+```
+
+## B) DESeq2 size factors
+
+```{r sizefactors}
+dds <- estimateSizeFactors(dds)
+sf <- sizeFactors(dds)
+summary(sf)
+```
+
+## C) Compare raw vs normalized counts for a gene
+
+```{r compare_counts}
+gene <- rownames(dds)[1]
+raw <- counts(dds, normalized = FALSE)[gene, ]
+norm <- counts(dds, normalized = TRUE)[gene, ]
+
+data.frame(
+  sample = colnames(dds),
+  condition = df$condition,
+  raw = as.numeric(raw),
+  norm = as.numeric(norm)
+)
+```
+
+## Write notes
+
+```{r write_notes}
+dir.create("../results", showWarnings = FALSE)
+out <- "../results/normalization_notes.md"
+cat(
+  "# Normalization Notes\n\n",
+  "- Raw library size range: ", paste(range(libsize), collapse = " to "), "\n",
+  "- DESeq2 size factor range: ", paste(round(range(sf), 3), collapse = " to "), "\n\n",
+  "## Sanity checks\n",
+  "- If size factors are extreme, verify sample QC and experimental design.\n",
+  "- Use MA plot later to confirm no global shifts remain after normalization.\n",
+  sep = "",
+  file = out
+)
+cat("Wrote", out, "\n")
+```
+
+

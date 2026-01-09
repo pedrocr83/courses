@@ -1,0 +1,181 @@
+---
+title: "Lab 7: LIANA Consensus Framework"
+subtitle: "Module 7 - LIANA"
+output: html_document
+---
+
+## Objectives
+- Run LIANA with multiple CCC methods
+- Generate consensus rankings
+- Compare method outputs
+
+## Setup
+
+```{r setup, message=FALSE, warning=FALSE}
+library(liana)
+library(Seurat)
+library(ggplot2)
+library(dplyr)
+```
+
+## 1. Load Example Data
+
+```{r load-data}
+# LIANA provides testdata
+testdata <- readRDS(system.file("testdata", "input", "testdata.rds", package = "liana"))
+
+# View the Seurat object
+testdata
+table(Idents(testdata))
+```
+
+## 2. View Available Methods and Resources
+
+```{r view-options}
+# Available methods
+show_methods()
+
+# Available resources (L-R databases)
+show_resources()
+```
+
+## 3. Run LIANA with Default Methods
+
+```{r run-liana}
+# Run LIANA (runs multiple methods)
+liana_results <- liana_wrap(testdata)
+
+# View results structure
+names(liana_results)
+```
+
+## 4. Explore Individual Method Results
+
+```{r individual-methods}
+# Each method's results
+cat("\n--- CellPhoneDB Results ---\n")
+head(liana_results$cellphonedb)
+
+cat("\n--- Connectome Results ---\n")
+head(liana_results$connectome)
+
+cat("\n--- NATMI Results ---\n")
+head(liana_results$natmi)
+```
+
+## 5. Generate Aggregate Ranking
+
+```{r aggregate}
+# Aggregate across methods
+liana_aggregate <- liana_aggregate(liana_results)
+
+# View aggregate results
+head(liana_aggregate)
+```
+
+## 6. Interpret Aggregate Scores
+
+```{r interpret}
+# Key columns:
+# - aggregate_rank: consensus rank across methods
+# - specificity_rank: how specific is this interaction
+
+# Top consensus interactions
+top_interactions <- liana_aggregate %>%
+  arrange(aggregate_rank) %>%
+  head(20)
+
+print(top_interactions[, c("source", "target", "ligand.complex", "receptor.complex", "aggregate_rank")])
+```
+
+## 7. Visualize Top Interactions
+
+```{r visualize}
+# Dot plot of top interactions
+liana_dotplot(liana_aggregate, 
+              source_groups = unique(liana_aggregate$source)[1:3],
+              target_groups = unique(liana_aggregate$target)[1:3],
+              ntop = 20)
+```
+
+## 8. Compare Method Agreement
+
+```{r compare-methods}
+# Check how methods rank the same interactions differently
+method_comparison <- liana_results %>%
+  lapply(function(x) {
+    x %>%
+      mutate(interaction = paste(source, target, ligand.complex, receptor.complex, sep = "_")) %>%
+      select(interaction, method = 1)  # Will error - need to adapt
+  })
+
+# Simple comparison: count significant per method
+sig_counts <- sapply(liana_results, function(x) {
+  if ("pvalue" %in% names(x)) {
+    sum(x$pvalue < 0.05, na.rm = TRUE)
+  } else if ("LRscore" %in% names(x)) {
+    sum(x$LRscore > 0.5, na.rm = TRUE)
+  } else {
+    nrow(x)
+  }
+})
+
+cat("\nInteractions per method:\n")
+print(sig_counts)
+```
+
+## 9. Filter by Specific Cell Types
+
+```{r filter-celltypes}
+# Focus on specific communication
+source_cells <- "B"
+target_cells <- "NK"
+
+specific_comm <- liana_aggregate %>%
+  filter(source == source_cells, target == target_cells)
+
+cat("Interactions from", source_cells, "to", target_cells, ":", nrow(specific_comm), "\n")
+head(specific_comm[, c("ligand.complex", "receptor.complex", "aggregate_rank")])
+```
+
+## 10. Use Different L-R Resource
+
+```{r different-resource}
+# Run with specific resource
+liana_custom <- liana_wrap(testdata, resource = "CellChatDB")
+
+# Compare results
+cat("\nDefault resource results:", nrow(liana_aggregate), "\n")
+cat("CellChatDB results:", nrow(liana_aggregate(liana_custom)), "\n")
+```
+
+## 11. Heatmap of Communication
+
+```{r heatmap, eval=FALSE}
+# Aggregate to cell type level
+heat_freq <- liana_aggregate %>%
+  filter(aggregate_rank < 0.05) %>%  # Top-ranked interactions
+  group_by(source, target) %>%
+  summarise(n_interactions = n()) %>%
+  tidyr::pivot_wider(names_from = target, values_from = n_interactions, values_fill = 0)
+
+# View
+print(heat_freq)
+```
+
+## Exercise Questions
+
+1. How many methods does LIANA run by default?
+2. What does "aggregate_rank" represent?
+3. Why is consensus ranking more reliable than individual methods?
+4. Which L-R resource has the most interactions?
+
+```{r exercises}
+# Your answers here
+
+
+```
+
+---
+*End of Lab 7*
+

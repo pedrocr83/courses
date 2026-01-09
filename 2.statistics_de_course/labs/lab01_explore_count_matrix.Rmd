@@ -1,0 +1,112 @@
+---
+title: "Lab 1: Explore a Count Matrix"
+subtitle: "Module 1 - Introduction to Transcriptomics Data"
+output: html_document
+---
+
+## Objectives
+- Load and inspect RNA-seq count data
+- Understand the structure of a count matrix
+- Explore basic properties of expression data
+
+## Setup
+
+```{r setup, message=FALSE}
+library(DESeq2)
+library(airway)
+library(ggplot2)
+```
+
+## 1. Load the Airway Dataset
+
+```{r load-data}
+data(airway)
+airway
+```
+
+## 2. Explore the Structure
+
+```{r structure}
+# How many genes?
+nrow(airway)
+
+# How many samples?
+ncol(airway)
+
+# View the count matrix
+head(assay(airway))
+```
+
+## 3. Sample Metadata
+
+```{r coldata}
+# Sample information
+colData(airway)
+
+# Experimental design
+table(airway$dex)
+```
+
+## 4. Properties of Count Data
+
+```{r count-properties}
+# Get count matrix
+counts <- assay(airway)
+
+# Check for zeros
+total_entries <- prod(dim(counts))
+zero_entries <- sum(counts == 0)
+sparsity <- zero_entries / total_entries
+
+cat("Total entries:", total_entries, "\n")
+cat("Zero entries:", zero_entries, "\n")
+cat("Sparsity:", round(sparsity * 100, 1), "%\n")
+```
+
+## 5. Distribution of Counts
+
+```{r distribution}
+# Distribution of a single gene
+gene_counts <- counts[1, ]
+hist(gene_counts, main = "Distribution of counts for one gene", 
+     xlab = "Count", col = "steelblue")
+
+# Log-transform for visualization
+log_counts <- log2(counts + 1)
+hist(log_counts[, 1], main = "Log2 counts (Sample 1)", 
+     xlab = "Log2(count + 1)", col = "steelblue", breaks = 50)
+```
+
+## 6. Mean-Variance Relationship
+
+```{r mean-var}
+gene_means <- rowMeans(counts)
+gene_vars <- apply(counts, 1, var)
+
+plot(log10(gene_means + 1), log10(gene_vars + 1),
+     pch = 16, cex = 0.3, col = rgb(0, 0, 0, 0.3),
+     xlab = "Log10(Mean + 1)", ylab = "Log10(Variance + 1)",
+     main = "Mean-Variance Relationship")
+abline(0, 1, col = "red", lwd = 2)  # Poisson: var = mean
+```
+
+## Exercise Questions
+
+1. What does the mean-variance plot tell you about the data?
+2. Why is there a line with slope 1 drawn on the plot?
+3. Most genes are above or below this line - what does this indicate?
+4. Why do we add 1 before log-transforming?
+
+```{r exercises}
+# Your answers here
+
+# Q1: Mean-variance relationship
+
+
+# Q4: Why add pseudocount?
+
+```
+
+---
+*End of Lab 1*
+

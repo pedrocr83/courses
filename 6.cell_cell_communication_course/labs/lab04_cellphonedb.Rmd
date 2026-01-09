@@ -1,0 +1,194 @@
+---
+title: "Lab 4: Run CellPhoneDB"
+subtitle: "Module 4 - CellPhoneDB"
+output: html_document
+---
+
+## Objectives
+- Prepare data for CellPhoneDB
+- Run CellPhoneDB statistical analysis
+- Interpret and visualize results
+
+## Note
+CellPhoneDB is Python-based. This lab uses reticulate to call Python from R, or you can run the Python sections in a Jupyter notebook.
+
+## Setup (R portion for data prep)
+
+```{r setup, message=FALSE, warning=FALSE}
+library(Seurat)
+library(reticulate)
+
+# If using reticulate, set Python
+# use_python("/path/to/python")
+```
+
+## 1. Prepare Data for CellPhoneDB
+
+```{r prepare-data}
+# Load example data (using Seurat's PBMC)
+# pbmc <- readRDS("path/to/pbmc.rds")
+
+# For demo, create mock data structure
+cat("Data preparation steps:\n")
+cat("1. Export normalized counts (genes x cells)\n")
+cat("2. Export metadata with cell type annotations\n")
+```
+
+### Export Format
+
+```{r export-format, eval=FALSE}
+# Export counts
+counts_matrix <- as.data.frame(GetAssayData(pbmc, slot = "data"))
+write.table(counts_matrix, "counts.txt", sep = "\t", quote = FALSE)
+
+# Export metadata
+meta <- data.frame(
+  Cell = colnames(pbmc),
+  cell_type = pbmc$cell_type
+)
+write.table(meta, "meta.txt", sep = "\t", quote = FALSE, row.names = FALSE)
+```
+
+## 2. Run CellPhoneDB (Python)
+
+The following would be run in Python/terminal:
+
+```python
+# In Python or terminal:
+from cellphonedb.src.core.methods import cpdb_statistical_analysis_method
+
+# Run statistical analysis
+deconvoluted, means, pvalues, significant_means = cpdb_statistical_analysis_method.call(
+    cpdb_file_path = cpdb.zip,  # CellPhoneDB database
+    meta_file_path = 'meta.txt',
+    counts_file_path = 'counts.txt',
+    counts_data = 'hgnc_symbol',
+    output_path = 'results/',
+    threshold = 0.1,
+    iterations = 1000
+)
+```
+
+Or via command line:
+
+```bash
+cellphonedb method statistical_analysis meta.txt counts.txt --counts-data=hgnc_symbol
+```
+
+## 3. Load CellPhoneDB Results (back in R)
+
+```{r load-results, eval=FALSE}
+# Load outputs
+pvalues <- read.table("results/pvalues.txt", header = TRUE, sep = "\t", check.names = FALSE)
+means <- read.table("results/means.txt", header = TRUE, sep = "\t", check.names = FALSE)
+significant_means <- read.table("results/significant_means.txt", header = TRUE, sep = "\t", check.names = FALSE)
+
+# Dimensions
+cat("Interactions tested:", nrow(pvalues), "\n")
+cat("Cell type pairs:", ncol(pvalues) - 12, "\n")  # First 12 cols are metadata
+```
+
+## 4. Explore Results
+
+```{r explore, eval=FALSE}
+# View column structure
+head(names(pvalues), 15)
+
+# Interaction metadata columns
+meta_cols <- c("id_cp_interaction", "interacting_pair", "partner_a", "partner_b",
+               "gene_a", "gene_b", "secreted", "receptor_a", "receptor_b",
+               "annotation_strategy", "is_integrin")
+
+# Cell pair columns (everything after metadata)
+cellpair_cols <- setdiff(names(pvalues), meta_cols)
+```
+
+## 5. Count Significant Interactions
+
+```{r count-sig, eval=FALSE}
+# For each cell pair, count significant interactions (p < 0.05)
+count_significant <- function(pval_df, cellpair_cols) {
+  sig_counts <- sapply(cellpair_cols, function(col) {
+    sum(pval_df[[col]] < 0.05, na.rm = TRUE)
+  })
+  return(sig_counts)
+}
+
+sig_counts <- count_significant(pvalues, cellpair_cols)
+sort(sig_counts, decreasing = TRUE)[1:10]
+```
+
+## 6. Create Dot Plot
+
+```{r dotplot, eval=FALSE}
+library(ggplot2)
+library(tidyr)
+
+# Prepare data for dot plot
+# Select top interactions
+top_interactions <- significant_means$interacting_pair[1:20]
+
+# Reshape for plotting
+plot_data <- significant_means %>%
+  filter(interacting_pair %in% top_interactions) %>%
+  select(interacting_pair, all_of(cellpair_cols)) %>%
+  pivot_longer(cols = -interacting_pair, 
+               names_to = "cell_pair", 
+               values_to = "mean")
+
+# Get corresponding p-values
+pval_data <- pvalues %>%
+  filter(interacting_pair %in% top_interactions) %>%
+  select(interacting_pair, all_of(cellpair_cols)) %>%
+  pivot_longer(cols = -interacting_pair,
+               names_to = "cell_pair",
+               values_to = "pvalue")
+
+# Merge
+plot_data <- left_join(plot_data, pval_data)
+plot_data$significant <- plot_data$pvalue < 0.05
+
+# Plot
+ggplot(plot_data, aes(x = cell_pair, y = interacting_pair)) +
+  geom_point(aes(size = mean, color = -log10(pvalue + 1e-10))) +
+  scale_color_gradient(low = "grey", high = "red") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(title = "CellPhoneDB Results", 
+       x = "Cell Type Pair",
+       y = "Ligand-Receptor Pair")
+```
+
+## 7. Interaction Summary
+
+```{r summary, eval=FALSE}
+# Summarize by cell type pair
+interaction_summary <- data.frame(
+  cell_pair = cellpair_cols,
+  n_significant = sig_counts
+)
+
+# Split into sender|receiver
+interaction_summary$sender <- sapply(strsplit(interaction_summary$cell_pair, "\\|"), "[", 1)
+interaction_summary$receiver <- sapply(strsplit(interaction_summary$cell_pair, "\\|"), "[", 2)
+
+# View
+head(interaction_summary[order(-interaction_summary$n_significant), ])
+```
+
+## Exercise Questions
+
+1. How many total L-R pairs were tested?
+2. Which cell type pair has the most significant interactions?
+3. What does the "means" value represent?
+4. Why does CellPhoneDB use permutation testing?
+
+```{r exercises}
+# Your answers here
+
+
+```
+
+---
+*End of Lab 4*
+

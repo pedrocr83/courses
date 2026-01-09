@@ -1,0 +1,205 @@
+---
+title: "Lab 10: Build and Analyze CCC Networks"
+subtitle: "Module 10 - CCC as a Graph Problem"
+output: html_document
+---
+
+## Objectives
+- Build a communication network from CCC results
+- Calculate graph metrics
+- Visualize network structure
+
+## Setup
+
+```{r setup, message=FALSE, warning=FALSE}
+library(CellChat)
+library(igraph)
+library(ggplot2)
+library(RColorBrewer)
+```
+
+## 1. Load CellChat Results
+
+```{r load-data}
+# Use CellChat example or load your own
+data(Skin_Merged)
+
+# Quick run of CellChat (if needed)
+data.input <- Skin_Merged@assays$RNA@data
+meta <- Skin_Merged@meta.data
+cellchat <- createCellChat(object = data.input, meta = meta, group.by = "labels")
+cellchat@DB <- CellChatDB.human
+cellchat <- subsetData(cellchat)
+cellchat <- identifyOverExpressedGenes(cellchat)
+cellchat <- identifyOverExpressedInteractions(cellchat)
+cellchat <- computeCommunProb(cellchat)
+cellchat <- filterCommunication(cellchat, min.cells = 10)
+cellchat <- computeCommunProbPathway(cellchat)
+cellchat <- aggregateNet(cellchat)
+```
+
+## 2. Extract Adjacency Matrix
+
+```{r adjacency}
+# Get interaction count matrix
+net_count <- cellchat@net$count
+net_weight <- cellchat@net$weight
+
+# View structure
+print("Interaction Count Matrix:")
+print(net_count)
+
+print("\nInteraction Weight Matrix:")
+round(net_weight, 3)
+```
+
+## 3. Create igraph Object
+
+```{r create-graph}
+# Create directed graph from weight matrix
+g <- graph_from_adjacency_matrix(
+  net_weight,
+  mode = "directed",
+  weighted = TRUE,
+  diag = FALSE
+)
+
+# View graph
+print(g)
+cat("\nNodes:", vcount(g), "\n")
+cat("Edges:", ecount(g), "\n")
+```
+
+## 4. Calculate Centrality Metrics
+
+```{r centrality}
+# Degree (in and out)
+V(g)$in_degree <- degree(g, mode = "in")
+V(g)$out_degree <- degree(g, mode = "out")
+V(g)$total_degree <- degree(g, mode = "all")
+
+# Strength (weighted degree)
+V(g)$in_strength <- strength(g, mode = "in")
+V(g)$out_strength <- strength(g, mode = "out")
+
+# Betweenness
+V(g)$betweenness <- betweenness(g, directed = TRUE)
+
+# PageRank
+V(g)$pagerank <- page_rank(g)$vector
+
+# Create summary table
+node_metrics <- data.frame(
+  cell_type = V(g)$name,
+  in_degree = V(g)$in_degree,
+  out_degree = V(g)$out_degree,
+  in_strength = round(V(g)$in_strength, 3),
+  out_strength = round(V(g)$out_strength, 3),
+  betweenness = round(V(g)$betweenness, 2),
+  pagerank = round(V(g)$pagerank, 4)
+)
+
+print(node_metrics)
+```
+
+## 5. Identify Key Nodes
+
+```{r key-nodes}
+# Top sender (highest out_strength)
+top_sender <- node_metrics[which.max(node_metrics$out_strength), ]
+cat("Top Sender:", top_sender$cell_type, "- Out Strength:", top_sender$out_strength, "\n")
+
+# Top receiver (highest in_strength)
+top_receiver <- node_metrics[which.max(node_metrics$in_strength), ]
+cat("Top Receiver:", top_receiver$cell_type, "- In Strength:", top_receiver$in_strength, "\n")
+
+# Top hub (highest betweenness)
+top_hub <- node_metrics[which.max(node_metrics$betweenness), ]
+cat("Top Hub:", top_hub$cell_type, "- Betweenness:", top_hub$betweenness, "\n")
+```
+
+## 6. Visualize Network
+
+```{r visualize}
+# Set visual properties
+V(g)$size <- V(g)$total_degree * 3 + 10
+V(g)$color <- brewer.pal(vcount(g), "Set3")
+E(g)$width <- E(g)$weight / max(E(g)$weight) * 5
+
+# Force-directed layout
+layout <- layout_with_fr(g)
+
+plot(g, 
+     layout = layout,
+     vertex.label.cex = 0.8,
+     vertex.label.color = "black",
+     edge.arrow.size = 0.3,
+     main = "Cell-Cell Communication Network")
+```
+
+## 7. Circular Layout
+
+```{r circular}
+# Circular layout
+plot(g,
+     layout = layout_in_circle(g),
+     vertex.size = V(g)$out_strength * 10 + 15,
+     vertex.label.cex = 0.8,
+     vertex.label.dist = 0,
+     edge.arrow.size = 0.3,
+     edge.curved = 0.2,
+     main = "CCC Network (Circular Layout)")
+```
+
+## 8. Heatmap of Adjacency
+
+```{r heatmap}
+# Heatmap
+library(pheatmap)
+
+pheatmap(net_weight,
+         cluster_rows = FALSE,
+         cluster_cols = FALSE,
+         color = colorRampPalette(c("white", "red"))(50),
+         main = "Communication Strength Matrix",
+         display_numbers = TRUE,
+         number_format = "%.2f")
+```
+
+## 9. Compare to CellChat's Analysis
+
+```{r cellchat-compare}
+# CellChat has built-in centrality analysis
+cellchat <- netAnalysis_computeCentrality(cellchat)
+
+# View CellChat's sender/receiver scores
+netAnalysis_signalingRole_scatter(cellchat)
+```
+
+## 10. Edge-Level Analysis
+
+```{r edge-analysis}
+# Get edge list with weights
+edge_list <- as_data_frame(g, what = "edges")
+edge_list <- edge_list[order(-edge_list$weight), ]
+
+cat("\nTop 10 Strongest Edges:\n")
+print(head(edge_list, 10))
+```
+
+## Exercise Questions
+
+1. What is the difference between degree and strength?
+2. Which cell type would you target to disrupt the network?
+3. How would this network change in disease?
+4. What are the limitations of this graph representation?
+
+```{r exercises}
+# Your answers here
+
+
+```
+
+---
+*End of Lab 10*
+

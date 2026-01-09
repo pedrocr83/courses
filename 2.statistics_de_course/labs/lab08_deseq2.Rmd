@@ -1,0 +1,170 @@
+---
+title: "Lab 8: Differential Expression with DESeq2"
+subtitle: "Module 8 - Bulk RNA-seq DE"
+output: html_document
+---
+
+## Objectives
+- Run a complete DESeq2 workflow
+- Interpret DESeq2 output
+- Create standard DE visualizations
+
+## Setup
+
+```{r setup, message=FALSE, warning=FALSE}
+library(DESeq2)
+library(airway)
+library(ggplot2)
+library(pheatmap)
+```
+
+## 1. Load and Prepare Data
+
+```{r load-data}
+data(airway)
+
+# View the data
+airway
+
+# Check experimental design
+colData(airway)[, c("cell", "dex")]
+```
+
+## 2. Create DESeqDataSet
+
+```{r create-dds}
+# Create DESeq2 object
+dds <- DESeqDataSet(airway, design = ~ cell + dex)
+
+# Check levels - set reference
+dds$dex <- relevel(dds$dex, ref = "untrt")
+
+# Pre-filtering: remove low-count genes
+keep <- rowSums(counts(dds) >= 10) >= 3
+dds <- dds[keep, ]
+
+cat("Genes before filtering:", nrow(airway), "\n")
+cat("Genes after filtering:", nrow(dds), "\n")
+```
+
+## 3. Run DESeq2
+
+```{r run-deseq}
+# Run the analysis
+dds <- DESeq(dds)
+
+# View results names
+resultsNames(dds)
+```
+
+## 4. Extract Results
+
+```{r results}
+# Get results for dex treatment effect
+res <- results(dds, name = "dex_trt_vs_untrt", alpha = 0.05)
+
+# Summary
+summary(res)
+```
+
+## 5. Explore Results Table
+
+```{r explore-results}
+# Convert to data frame
+res_df <- as.data.frame(res)
+res_df <- res_df[order(res_df$padj), ]
+
+# Top 10 DEGs
+head(res_df, 10)
+
+# Count significant genes
+sig_genes <- sum(res$padj < 0.05, na.rm = TRUE)
+up_genes <- sum(res$padj < 0.05 & res$log2FoldChange > 0, na.rm = TRUE)
+down_genes <- sum(res$padj < 0.05 & res$log2FoldChange < 0, na.rm = TRUE)
+
+cat("\nSignificant genes (FDR < 0.05):", sig_genes, "\n")
+cat("Upregulated:", up_genes, "\n")
+cat("Downregulated:", down_genes, "\n")
+```
+
+## 6. MA Plot
+
+```{r ma-plot}
+plotMA(res, ylim = c(-5, 5), main = "MA Plot: Treated vs Untreated")
+```
+
+## 7. Volcano Plot
+
+```{r volcano}
+res_df$significant <- ifelse(res_df$padj < 0.05 & abs(res_df$log2FoldChange) > 1, 
+                              "Yes", "No")
+
+ggplot(res_df, aes(x = log2FoldChange, y = -log10(pvalue), color = significant)) +
+  geom_point(alpha = 0.5, size = 1) +
+  scale_color_manual(values = c("gray", "red")) +
+  geom_vline(xintercept = c(-1, 1), linetype = "dashed") +
+  geom_hline(yintercept = -log10(0.05), linetype = "dashed") +
+  labs(title = "Volcano Plot",
+       x = "Log2 Fold Change",
+       y = "-Log10(p-value)") +
+  theme_minimal()
+```
+
+## 8. Heatmap of Top DEGs
+
+```{r heatmap}
+# Get top 30 significant genes
+top_genes <- rownames(res_df)[1:30]
+
+# Get normalized counts
+vsd <- vst(dds, blind = FALSE)
+mat <- assay(vsd)[top_genes, ]
+
+# Scale rows
+mat_scaled <- t(scale(t(mat)))
+
+# Annotation
+annotation_col <- data.frame(
+  Treatment = colData(dds)$dex,
+  row.names = colnames(mat)
+)
+
+pheatmap(mat_scaled,
+         annotation_col = annotation_col,
+         cluster_rows = TRUE,
+         cluster_cols = TRUE,
+         show_rownames = FALSE,
+         main = "Top 30 DEGs")
+```
+
+## 9. PCA Plot
+
+```{r pca}
+plotPCA(vsd, intgroup = c("dex", "cell"))
+```
+
+## 10. Single Gene Plot
+
+```{r single-gene}
+# Plot counts for top gene
+top_gene <- rownames(res_df)[1]
+
+plotCounts(dds, gene = top_gene, intgroup = "dex", 
+           main = paste("Expression of", top_gene))
+```
+
+## Exercise Questions
+
+1. Why do we include `cell` in the design formula?
+2. What does the `baseMean` column represent?
+3. Looking at the volcano plot, what thresholds define significance?
+4. Why might some genes have `NA` for padj?
+
+```{r exercises}
+# Your answers here
+
+```
+
+---
+*End of Lab 8*
+

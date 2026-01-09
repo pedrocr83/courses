@@ -1,0 +1,84 @@
+# Lab 13: Visualizing DE Results (MA, Volcano, Heatmap)
+
+## Objectives
+
+- Create core DE visualizations (MA + volcano)
+- Make a simple heatmap of top DE genes
+- Save figures for your final report
+
+## Outputs
+
+- `../figures/lab13_ma.png`
+- `../figures/lab13_volcano.png`
+- `../figures/lab13_heatmap.png`
+
+---
+
+```{r setup, message=FALSE}
+pkgs <- c("DESeq2", "airway", "SummarizedExperiment", "pheatmap", "ggplot2")
+missing <- pkgs[!sapply(pkgs, requireNamespace, quietly = TRUE)]
+if (length(missing) > 0) stop("Missing packages: ", paste(missing, collapse = ", "), ". See setup.md")
+
+library(DESeq2)
+library(airway)
+library(SummarizedExperiment)
+library(pheatmap)
+library(ggplot2)
+
+dir.create("../figures", showWarnings = FALSE)
+```
+
+```{r deseq2}
+data("airway")
+df <- as.data.frame(colData(airway))
+df$condition <- droplevels(df$dex)
+
+dds <- DESeqDataSet(airway, design = ~ condition)
+dds <- DESeq(dds)
+res <- as.data.frame(results(dds, contrast = c("condition", "trt", "untrt")))
+res$gene <- rownames(res)
+res <- res[order(res$padj), ]
+```
+
+## A) MA plot
+
+```{r ma_plot, fig.width=6, fig.height=5}
+png("../figures/lab13_ma.png", width = 900, height = 750, res = 150)
+plotMA(results(dds, contrast = c("condition", "trt", "untrt")), ylim = c(-4, 4))
+dev.off()
+cat("Wrote ../figures/lab13_ma.png\n")
+```
+
+## B) Volcano plot (ggplot2)
+
+```{r volcano}
+res2 <- res
+res2$neglog10padj <- -log10(res2$padj)
+res2$neglog10padj[!is.finite(res2$neglog10padj)] <- NA
+res2$signif <- !is.na(res2$padj) & res2$padj < 0.05 & abs(res2$log2FoldChange) > 0.5
+
+p <- ggplot(res2, aes(x = log2FoldChange, y = neglog10padj)) +
+  geom_point(aes(color = signif), alpha = 0.5, size = 1) +
+  scale_color_manual(values = c("grey70", "steelblue")) +
+  theme_minimal() +
+  labs(title = "Volcano plot", x = "log2FC", y = "-log10(FDR)")
+
+ggsave("../figures/lab13_volcano.png", p, width = 6, height = 5, dpi = 150)
+cat("Wrote ../figures/lab13_volcano.png\n")
+```
+
+## C) Heatmap of top DE genes
+
+```{r heatmap}
+top_genes <- head(res$gene[!is.na(res$padj)], 30)
+vsd <- vst(dds, blind = FALSE)
+mat <- assay(vsd)[top_genes, ]
+mat <- mat - rowMeans(mat)
+
+png("../figures/lab13_heatmap.png", width = 900, height = 900, res = 150)
+pheatmap(mat, annotation_col = data.frame(condition = df$condition, row.names = rownames(df)))
+dev.off()
+cat("Wrote ../figures/lab13_heatmap.png\n")
+```
+
+

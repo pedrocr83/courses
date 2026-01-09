@@ -1,0 +1,69 @@
+# Lab 10: Why scRNA-seq DE is Different (Pseudoreplication Demo)
+
+## Objectives
+
+- Understand why **cells are not replicates**
+- See how pseudoreplication creates inflated significance
+- Learn a safer alternative: pseudobulk (Lab 11)
+
+## Outputs
+
+- `../results/lab10_pseudoreplication_notes.md`
+
+---
+
+```{r setup, message=FALSE}
+set.seed(123)
+dir.create("../results", showWarnings = FALSE)
+```
+
+## A) Simulate 4 donors, 2 conditions, many cells per donor
+
+```{r simulate}
+n_donors <- 4
+cells_per_donor <- 500
+donor <- rep(paste0("D", 1:n_donors), each = cells_per_donor)
+condition <- rep(rep(c("ctrl", "trt"), each = cells_per_donor), times = n_donors/2)
+
+# Gene with NO real condition effect, but donor-to-donor variability
+donor_effect <- rnorm(n_donors, 0, 1)
+mu <- 5 + donor_effect[as.integer(factor(donor))]
+expr <- rnorm(n_donors * cells_per_donor, mean = mu, sd = 1)
+
+df <- data.frame(donor = donor, condition = condition, expr = expr)
+head(df)
+```
+
+## B) Bad analysis: treat cells as independent replicates
+
+```{r bad}
+tt_bad <- t.test(expr ~ condition, data = df)
+tt_bad$p.value
+```
+
+## C) Better: aggregate per donor (pseudobulk intuition)
+
+```{r better}
+pb <- aggregate(expr ~ donor + condition, data = df, FUN = mean)
+tt_good <- t.test(expr ~ condition, data = pb)
+tt_good$p.value
+```
+
+## Write notes
+
+```{r write}
+out <- "../results/lab10_pseudoreplication_notes.md"
+cat(
+  "# scRNA-seq DE Challenges: Pseudoreplication\n\n",
+  "- Cell-level t-test p-value (bad): ", signif(tt_bad$p.value, 3), "\n",
+  "- Donor-aggregated test p-value (better): ", signif(tt_good$p.value, 3), "\n\n",
+  "## Takeaway\n",
+  "- Use donor/sample as the replicate unit. Cells are nested within samples.\n",
+  "- Prefer pseudobulk or sample-aware models for inference.\n",
+  sep = "",
+  file = out
+)
+cat("Wrote", out, "\n")
+```
+
+

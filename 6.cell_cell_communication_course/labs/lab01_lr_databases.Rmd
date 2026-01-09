@@ -1,0 +1,145 @@
+---
+title: "Lab 1: Explore Ligand-Receptor Databases"
+subtitle: "Module 1 - Biological Foundations"
+output: html_document
+---
+
+## Objectives
+- Explore curated ligand-receptor databases
+- Understand database structure and coverage
+- Search for specific L-R pairs
+
+## Setup
+
+```{r setup, message=FALSE, warning=FALSE}
+library(CellChat)
+library(dplyr)
+library(ggplot2)
+```
+
+## 1. Load CellChatDB
+
+```{r load-db}
+# Load human database
+CellChatDB <- CellChatDB.human
+
+# View structure
+names(CellChatDB)
+```
+
+## 2. Explore Interaction Categories
+
+```{r categories}
+# View categories
+table(CellChatDB$interaction$annotation)
+
+# Count interactions per category
+interaction_counts <- CellChatDB$interaction %>%
+  group_by(annotation) %>%
+  summarise(count = n())
+
+print(interaction_counts)
+
+# Visualize
+ggplot(interaction_counts, aes(x = reorder(annotation, count), y = count, fill = annotation)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  labs(title = "CellChatDB Interaction Categories",
+       x = "Category", y = "Number of Interactions") +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+## 3. Explore Pathway Information
+
+```{r pathways}
+# View pathways
+head(CellChatDB$interaction$pathway_name, 20)
+
+# Top pathways by number of interactions
+pathway_counts <- CellChatDB$interaction %>%
+  group_by(pathway_name) %>%
+  summarise(count = n()) %>%
+  arrange(desc(count))
+
+head(pathway_counts, 15)
+```
+
+## 4. Search for Specific Ligands
+
+```{r search-ligand}
+# Search for TGF-beta related
+tgfb_interactions <- CellChatDB$interaction %>%
+  filter(grepl("TGFB", ligand))
+
+print(tgfb_interactions[, c("ligand", "receptor", "pathway_name")])
+```
+
+## 5. Search for Specific Receptors
+
+```{r search-receptor}
+# Search for CD receptors
+cd_interactions <- CellChatDB$interaction %>%
+  filter(grepl("^CD[0-9]", receptor))
+
+head(cd_interactions[, c("ligand", "receptor", "annotation")], 10)
+```
+
+## 6. Multi-subunit Complexes
+
+```{r complexes}
+# View complex information
+head(CellChatDB$complex, 10)
+
+# Interactions involving complexes
+complex_interactions <- CellChatDB$interaction %>%
+  filter(grepl("_", receptor) | grepl("_", ligand))
+
+cat("Interactions with complexes:", nrow(complex_interactions), "\n")
+```
+
+## 7. Compare Human vs Mouse
+
+```{r compare-species}
+CellChatDB_mouse <- CellChatDB.mouse
+
+cat("Human interactions:", nrow(CellChatDB.human$interaction), "\n")
+cat("Mouse interactions:", nrow(CellChatDB.mouse$interaction), "\n")
+```
+
+## 8. Export Subset for Reference
+
+```{r export}
+# Export immune-related interactions
+immune_pathways <- c("CCL", "CXCL", "IL", "TNF", "IFN")
+
+immune_interactions <- CellChatDB$interaction %>%
+  filter(grepl(paste(immune_pathways, collapse = "|"), pathway_name))
+
+cat("Immune-related interactions:", nrow(immune_interactions), "\n")
+
+# View sample
+head(immune_interactions[, c("ligand", "receptor", "pathway_name")], 10)
+```
+
+## Exercise Questions
+
+1. How many total interactions are in CellChatDB for human?
+2. Which signaling category has the most interactions?
+3. Find all interactions involving IL6 as a ligand.
+4. What is the difference between "Secreted Signaling" and "Cell-Cell Contact"?
+
+```{r exercises}
+# Your answers here
+
+# Q1: Total interactions
+
+
+# Q3: IL6 interactions
+
+
+```
+
+---
+*End of Lab 1*
+

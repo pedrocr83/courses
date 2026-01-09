@@ -1,0 +1,99 @@
+# Lab 9: Compare DESeq2 vs edgeR vs limma-voom
+
+## Objectives
+
+- Run 3 common bulk DE workflows on the same dataset
+- Compare overlap and rank concordance
+- Practice interpreting disagreement
+
+## Outputs
+
+- `../results/lab09_tool_comparison.csv`
+
+---
+
+```{r setup, message=FALSE}
+pkgs <- c("DESeq2", "edgeR", "limma", "airway", "SummarizedExperiment")
+missing <- pkgs[!sapply(pkgs, requireNamespace, quietly = TRUE)]
+if (length(missing) > 0) stop("Missing packages: ", paste(missing, collapse = ", "), ". See setup.md")
+
+library(DESeq2)
+library(edgeR)
+library(limma)
+library(airway)
+library(SummarizedExperiment)
+```
+
+```{r load}
+data("airway")
+df <- as.data.frame(colData(airway))
+df$condition <- droplevels(df$dex)
+
+counts_mat <- as.matrix(counts(airway))
+stopifnot(all(colnames(counts_mat) == rownames(df)))
+```
+
+## A) DESeq2
+
+```{r deseq2}
+dds <- DESeqDataSetFromMatrix(countData = counts_mat, colData = df, design = ~ condition)
+dds <- DESeq(dds)
+res_deseq2 <- as.data.frame(results(dds, contrast = c("condition", "trt", "untrt")))
+res_deseq2$gene <- rownames(res_deseq2)
+```
+
+## B) edgeR
+
+```{r edger}
+y <- DGEList(counts = counts_mat, group = df$condition)
+y <- calcNormFactors(y)
+design <- model.matrix(~ df$condition)
+y <- estimateDisp(y, design)
+fit <- glmQLFit(y, design)
+qlf <- glmQLFTest(fit, coef = 2)
+res_edger <- as.data.frame(topTags(qlf, n = Inf))
+res_edger$gene <- rownames(res_edger)
+```
+
+## C) limma-voom
+
+```{r limma_voom}
+design <- model.matrix(~ df$condition)
+v <- voom(counts_mat, design, plot = FALSE)
+fit <- lmFit(v, design)
+fit <- eBayes(fit)
+tt <- topTable(fit, coef = 2, number = Inf, sort.by = "P")
+res_limma <- as.data.frame(tt)
+res_limma$gene <- rownames(res_limma)
+```
+
+## D) Compare top hits (by FDR)
+
+```{r compare}
+top_n <- 200
+top_deseq2 <- head(res_deseq2[order(res_deseq2$padj), "gene"], top_n)
+top_edger  <- head(res_edger[order(res_edger$FDR), "gene"], top_n)
+top_limma  <- head(res_limma[order(res_limma$adj.P.Val), "gene"], top_n)
+
+overlap_3 <- length(Reduce(intersect, list(top_deseq2, top_edger, top_limma)))
+cat("Top", top_n, "overlap (all 3):", overlap_3, "\n")
+
+out <- data.frame(
+  top_n = top_n,
+  overlap_all3 = overlap_3,
+  overlap_deseq2_edger = length(intersect(top_deseq2, top_edger)),
+  overlap_deseq2_limma = length(intersect(top_deseq2, top_limma)),
+  overlap_edger_limma = length(intersect(top_edger, top_limma))
+)
+
+dir.create("../results", showWarnings = FALSE)
+write.csv(out, "../results/lab09_tool_comparison.csv", row.names = FALSE)
+cat("Wrote ../results/lab09_tool_comparison.csv\n")
+```
+
+## Reflection
+
+- Disagreement is normal: methods differ in dispersion estimation, normalization, and shrinkage.
+- Always report: sample size, model, contrast, filtering, and thresholds.
+
+

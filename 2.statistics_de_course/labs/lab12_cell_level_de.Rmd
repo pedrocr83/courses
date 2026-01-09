@@ -1,0 +1,65 @@
+# Lab 12: Cell-level DE vs Pseudobulk (Conceptual Comparison)
+
+## Objectives
+
+- Compare a cell-level test vs pseudobulk-style test on simulated data
+- Understand when cell-level tests can be misleading
+
+## Outputs
+
+- `../results/lab12_celllevel_vs_pseudobulk.md`
+
+---
+
+```{r setup, message=FALSE}
+set.seed(123)
+dir.create("../results", showWarnings = FALSE)
+```
+
+```{r simulate}
+n_donors <- 6
+cells_per_donor <- 300
+donor <- rep(paste0("D", 1:n_donors), each = cells_per_donor)
+condition <- rep(rep(c("ctrl", "trt"), each = cells_per_donor), times = n_donors/2)
+
+# True small effect + donor variability
+donor_effect <- rnorm(n_donors, 0, 0.6)
+true_effect <- ifelse(condition == "trt", 0.2, 0)
+expr <- rnorm(n_donors * cells_per_donor, mean = 4 + donor_effect[as.integer(factor(donor))] + true_effect, sd = 1)
+
+df <- data.frame(donor = donor, condition = condition, expr = expr)
+```
+
+## A) Cell-level test (often optimistic)
+
+```{r cell_level}
+pv_cell <- t.test(expr ~ condition, data = df)$p.value
+pv_cell
+```
+
+## B) Pseudobulk-style test (donor means)
+
+```{r pseudobulk}
+pb <- aggregate(expr ~ donor + condition, data = df, FUN = mean)
+pv_pb <- t.test(expr ~ condition, data = pb)$p.value
+pv_pb
+```
+
+## Write notes
+
+```{r write}
+out <- "../results/lab12_celllevel_vs_pseudobulk.md"
+cat(
+  "# Cell-level vs Pseudobulk (Demo)\n\n",
+  "- Cell-level p-value: ", signif(pv_cell, 3), "\n",
+  "- Pseudobulk (donor mean) p-value: ", signif(pv_pb, 3), "\n\n",
+  "## Interpretation\n",
+  "- If these differ a lot, cell-level inference may be overstating certainty.\n",
+  "- Prefer sample-aware inference for claims about conditions.\n",
+  sep = "",
+  file = out
+)
+cat("Wrote", out, "\n")
+```
+
+

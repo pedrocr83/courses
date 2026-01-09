@@ -1,0 +1,156 @@
+---
+title: "Lab 5: Hypothesis Testing Fundamentals"
+subtitle: "Module 5 - Statistical Testing"
+output: html_document
+---
+
+## Objectives
+- Perform t-tests and Wilcoxon tests on gene expression
+- Understand p-value interpretation
+- Compare parametric and non-parametric approaches
+
+## Setup
+
+```{r setup, message=FALSE}
+library(DESeq2)
+library(airway)
+library(ggplot2)
+```
+
+## 1. Prepare Data
+
+```{r prepare-data}
+data(airway)
+counts <- assay(airway)
+condition <- airway$dex
+
+# Get sample indices for each group
+treated <- which(condition == "trt")
+untreated <- which(condition == "untrt")
+
+cat("Treated samples:", treated, "\n")
+cat("Untreated samples:", untreated, "\n")
+```
+
+## 2. T-test for a Single Gene
+
+```{r single-ttest}
+# Select a gene
+gene_name <- "ENSG00000152583"  # Known to be differentially expressed
+gene_expr <- counts[gene_name, ]
+
+# Extract expression by group
+expr_treated <- gene_expr[treated]
+expr_untreated <- gene_expr[untreated]
+
+cat("Treated:", expr_treated, "\n")
+cat("Untreated:", expr_untreated, "\n")
+
+# Run t-test
+t_result <- t.test(expr_treated, expr_untreated)
+print(t_result)
+```
+
+## 3. Understanding the Output
+
+```{r interpret-ttest}
+cat("Test statistic (t):", t_result$statistic, "\n")
+cat("Degrees of freedom:", t_result$parameter, "\n")
+cat("p-value:", t_result$p.value, "\n")
+cat("95% CI for difference:", t_result$conf.int, "\n")
+cat("Group means:", t_result$estimate, "\n")
+```
+
+## 4. Wilcoxon Rank-Sum Test (Non-parametric)
+
+```{r wilcoxon}
+# Same gene, non-parametric test
+wilcox_result <- wilcox.test(expr_treated, expr_untreated)
+print(wilcox_result)
+
+cat("\nComparison:\n")
+cat("t-test p-value:", t_result$p.value, "\n")
+cat("Wilcoxon p-value:", wilcox_result$p.value, "\n")
+```
+
+## 5. Visualize the Comparison
+
+```{r visualize}
+# Create data frame for plotting
+df <- data.frame(
+  expression = gene_expr,
+  condition = condition
+)
+
+ggplot(df, aes(x = condition, y = expression, fill = condition)) +
+  geom_boxplot() +
+  geom_jitter(width = 0.2, alpha = 0.7) +
+  labs(title = paste("Expression of", gene_name),
+       y = "Raw counts",
+       x = "Condition") +
+  theme_minimal()
+```
+
+## 6. Testing Multiple Genes
+
+```{r multiple-genes}
+# Test first 100 genes
+n_genes <- 100
+pvalues <- numeric(n_genes)
+
+for (i in 1:n_genes) {
+  expr_trt <- counts[i, treated]
+  expr_untrt <- counts[i, untreated]
+  
+  # Use Wilcoxon (more robust for small samples)
+  test <- wilcox.test(expr_trt, expr_untrt)
+  pvalues[i] <- test$p.value
+}
+
+# Summary
+cat("Genes with p < 0.05:", sum(pvalues < 0.05, na.rm = TRUE), "\n")
+cat("Genes with p < 0.01:", sum(pvalues < 0.01, na.rm = TRUE), "\n")
+```
+
+## 7. P-value Distribution
+
+```{r pvalue-dist}
+# Histogram of p-values
+hist(pvalues, breaks = 20, col = "steelblue",
+     main = "P-value Distribution",
+     xlab = "p-value")
+abline(h = n_genes / 20, col = "red", lwd = 2, lty = 2)
+```
+
+## 8. What Does This Distribution Tell Us?
+
+The p-value histogram reveals:
+- **Uniform distribution (flat)**: No true signal, all null
+- **Spike near 0**: True differential expression
+- **Spike near 1**: Anti-conservative (rare, indicates problem)
+
+```{r interpret-pvalue}
+# Expected under null hypothesis
+expected_under_null <- n_genes * 0.05
+cat("Expected false positives at α=0.05:", expected_under_null, "\n")
+cat("Observed p < 0.05:", sum(pvalues < 0.05, na.rm = TRUE), "\n")
+```
+
+## Exercise Questions
+
+1. Why might we prefer Wilcoxon over t-test for small sample sizes?
+2. What does the p-value histogram tell us about this dataset?
+3. If we tested 20,000 genes, how many false positives would we expect at α=0.05?
+4. Why is a low p-value not sufficient to claim biological importance?
+
+```{r exercises}
+# Your answers here
+
+# Q3: False positives for 20,000 genes
+
+
+```
+
+---
+*End of Lab 5*
+

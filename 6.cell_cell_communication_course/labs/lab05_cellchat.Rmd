@@ -1,0 +1,183 @@
+---
+title: "Lab 5: Run CellChat"
+subtitle: "Module 5 - CellChat"
+output: html_document
+---
+
+## Objectives
+- Create a CellChat object
+- Run the full CellChat analysis pipeline
+- Visualize communication patterns
+
+## Setup
+
+```{r setup, message=FALSE, warning=FALSE}
+library(CellChat)
+library(Seurat)
+library(patchwork)
+```
+
+## 1. Load Example Data
+
+```{r load-data}
+# CellChat provides example data
+data(Skin_Merged)
+
+# View the data
+Skin_Merged
+```
+
+For your own Seurat object:
+
+```{r seurat-input, eval=FALSE}
+# From Seurat object
+cellchat <- createCellChat(object = seurat_obj, group.by = "cell_type")
+```
+
+## 2. Create CellChat Object
+
+```{r create-cellchat}
+# Using the example data
+data.input <- Skin_Merged@assays$RNA@data
+meta <- Skin_Merged@meta.data
+
+# Create CellChat object
+cellchat <- createCellChat(object = data.input, meta = meta, group.by = "labels")
+
+# View cell groups
+levels(cellchat@idents)
+```
+
+## 3. Set Ligand-Receptor Database
+
+```{r set-db}
+# Set database (human)
+CellChatDB <- CellChatDB.human
+
+# View database structure
+showDatabaseCategory(CellChatDB)
+
+# Use all interactions (or subset)
+cellchat@DB <- CellChatDB
+```
+
+## 4. Preprocess Expression Data
+
+```{r preprocess}
+# Subset data (genes in database)
+cellchat <- subsetData(cellchat)
+
+# Identify over-expressed genes
+cellchat <- identifyOverExpressedGenes(cellchat)
+cellchat <- identifyOverExpressedInteractions(cellchat)
+```
+
+## 5. Compute Communication Probability
+
+```{r compute-prob}
+# Compute communication probability
+cellchat <- computeCommunProb(cellchat, type = "triMean")
+
+# Filter weak communications
+cellchat <- filterCommunication(cellchat, min.cells = 10)
+```
+
+## 6. Aggregate to Pathways
+
+```{r pathways}
+# Compute pathway-level communication
+cellchat <- computeCommunProbPathway(cellchat)
+
+# Aggregate network
+cellchat <- aggregateNet(cellchat)
+```
+
+## 7. Visualize Communication Network
+
+```{r visualize-network}
+# Circle plot of all interactions
+groupSize <- as.numeric(table(cellchat@idents))
+
+par(mfrow = c(1, 2), xpd = TRUE)
+netVisual_circle(cellchat@net$count, vertex.weight = groupSize, 
+                 weight.scale = TRUE, label.edge = FALSE, 
+                 title.name = "Number of Interactions")
+
+netVisual_circle(cellchat@net$weight, vertex.weight = groupSize, 
+                 weight.scale = TRUE, label.edge = FALSE, 
+                 title.name = "Interaction Weights")
+```
+
+## 8. Visualize Specific Pathways
+
+```{r pathway-vis}
+# View available pathways
+cellchat@netP$pathways[1:10]
+
+# Visualize specific pathway
+pathways.show <- "CXCL"
+netVisual_aggregate(cellchat, signaling = pathways.show, layout = "circle")
+```
+
+## 9. Identify Signaling Roles
+
+```{r signaling-roles}
+# Compute centrality measures
+cellchat <- netAnalysis_computeCentrality(cellchat, slot.name = "netP")
+
+# Visualize dominant senders and receivers
+netAnalysis_signalingRole_network(cellchat, signaling = pathways.show, 
+                                  width = 8, height = 2.5, font.size = 10)
+```
+
+## 10. Heatmap of Signaling
+
+```{r heatmap}
+# Pathway-level heatmap
+netVisual_heatmap(cellchat, signaling = pathways.show, color.heatmap = "Reds")
+```
+
+## 11. View Specific L-R Pairs
+
+```{r lr-pairs}
+# Extract L-R pairs for a pathway
+extractEnrichedLR(cellchat, signaling = pathways.show)
+
+# Bubble plot
+netVisual_bubble(cellchat, sources.use = 1:3, targets.use = 4:6, remove.isolate = FALSE)
+```
+
+## 12. Summary Statistics
+
+```{r summary}
+# Number of interactions
+df.net <- subsetCommunication(cellchat)
+cat("Total interactions:", nrow(df.net), "\n")
+
+# Top interactions
+head(df.net[order(df.net$prob, decreasing = TRUE), 
+            c("source", "target", "ligand", "receptor", "prob")], 10)
+```
+
+## Save CellChat Object
+
+```{r save, eval=FALSE}
+saveRDS(cellchat, file = "cellchat_result.rds")
+```
+
+## Exercise Questions
+
+1. How many cell types are in this dataset?
+2. Which cell type is the dominant sender?
+3. What pathways are most active?
+4. How is "communication probability" calculated?
+
+```{r exercises}
+# Your answers here
+
+
+```
+
+---
+*End of Lab 5*
+

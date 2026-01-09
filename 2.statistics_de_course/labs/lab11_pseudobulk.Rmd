@@ -1,0 +1,205 @@
+---
+title: "Lab 11: Pseudobulk Analysis"
+subtitle: "Module 11 - Single-Cell DE with Pseudobulk"
+output: html_document
+---
+
+## Objectives
+- Aggregate single-cell data to pseudobulk
+- Apply DESeq2 to pseudobulk counts
+- Understand when pseudobulk is appropriate
+
+## Setup
+
+```{r setup, message=FALSE, warning=FALSE}
+library(DESeq2)
+library(ggplot2)
+library(SingleCellExperiment)
+```
+
+## 1. Simulate Single-Cell Data
+
+For this lab, we'll simulate scRNA-seq data with sample structure.
+
+```{r simulate-data}
+set.seed(42)
+
+# Parameters
+n_genes <- 500
+n_cells <- 2000
+n_donors <- 6
+n_per_donor <- n_cells / n_donors
+
+# Simulate donor and condition
+donor <- rep(paste0("D", 1:6), each = n_per_donor)
+condition <- ifelse(donor %in% c("D1", "D2", "D3"), "control", "treated")
+
+# Simulate counts
+base_expr <- sample(10:1000, n_genes, replace = TRUE)
+counts <- matrix(
+  rnbinom(n_genes * n_cells, mu = rep(base_expr, n_cells), size = 10),
+  nrow = n_genes
+)
+
+# Add differential expression for first 50 genes
+de_genes <- 1:50
+for (i in which(condition == "treated")) {
+  counts[de_genes, i] <- counts[de_genes, i] * sample(c(0.5, 2), length(de_genes), replace = TRUE)
+}
+
+rownames(counts) <- paste0("Gene", 1:n_genes)
+colnames(counts) <- paste0("Cell", 1:n_cells)
+
+# Create cell metadata
+cell_meta <- data.frame(
+  cell_id = colnames(counts),
+  donor = donor,
+  condition = condition,
+  row.names = colnames(counts)
+)
+
+cat("Cells:", ncol(counts), "\n")
+cat("Genes:", nrow(counts), "\n")
+cat("Donors:", length(unique(donor)), "\n")
+table(cell_meta$condition, cell_meta$donor)
+```
+
+## 2. Aggregate to Pseudobulk
+
+```{r aggregate}
+# Sum counts by donor
+donors <- unique(cell_meta$donor)
+pseudobulk <- sapply(donors, function(d) {
+  cells <- rownames(cell_meta)[cell_meta$donor == d]
+  rowSums(counts[, cells, drop = FALSE])
+})
+
+colnames(pseudobulk) <- donors
+
+# Create sample metadata
+sample_meta <- data.frame(
+  donor = donors,
+  condition = ifelse(donors %in% c("D1", "D2", "D3"), "control", "treated"),
+  row.names = donors
+)
+
+cat("\nPseudobulk dimensions:", dim(pseudobulk), "\n")
+print(sample_meta)
+```
+
+## 3. Quality Check
+
+```{r qc}
+# Cells per donor
+cells_per_donor <- table(cell_meta$donor)
+print(cells_per_donor)
+
+# Total counts per pseudobulk sample
+colSums(pseudobulk)
+```
+
+## 4. DESeq2 on Pseudobulk
+
+```{r deseq2}
+# Create DESeqDataSet
+dds <- DESeqDataSetFromMatrix(
+  countData = pseudobulk,
+  colData = sample_meta,
+  design = ~ condition
+)
+
+# Set reference level
+dds$condition <- relevel(dds$condition, ref = "control")
+
+# Filter low-count genes
+keep <- rowSums(counts(dds) >= 10) >= 3
+dds <- dds[keep, ]
+
+# Run DESeq2
+dds <- DESeq(dds)
+res <- results(dds, alpha = 0.05)
+
+summary(res)
+```
+
+## 5. Compare to True DEGs
+
+```{r compare}
+# Get results
+res_df <- as.data.frame(res)
+res_df$gene <- rownames(res_df)
+res_df$true_de <- res_df$gene %in% paste0("Gene", 1:50)
+
+# Confusion matrix
+sig <- res_df$padj < 0.05 & !is.na(res_df$padj)
+true_de <- res_df$true_de
+
+cat("True positives:", sum(sig & true_de), "\n")
+cat("False positives:", sum(sig & !true_de), "\n")
+cat("False negatives:", sum(!sig & true_de), "\n")
+cat("True negatives:", sum(!sig & !true_de), "\n")
+```
+
+## 6. Visualize Results
+
+```{r visualize}
+# Volcano plot
+ggplot(res_df, aes(x = log2FoldChange, y = -log10(pvalue), color = true_de)) +
+  geom_point(alpha = 0.5) +
+  scale_color_manual(values = c("gray", "red"), labels = c("Not DE", "True DE")) +
+  labs(title = "Pseudobulk DE Results",
+       subtitle = "Red = True DE genes",
+       x = "Log2 Fold Change",
+       y = "-Log10(p-value)",
+       color = "Truth") +
+  theme_minimal()
+```
+
+## 7. Why Not Cell-Level?
+
+```{r cell-level}
+# Run cell-level Wilcoxon tests (what NOT to do)
+pvals_cell <- sapply(1:nrow(counts), function(i) {
+  ctrl <- counts[i, cell_meta$condition == "control"]
+  trt <- counts[i, cell_meta$condition == "treated"]
+  wilcox.test(ctrl, trt)$p.value
+})
+
+cell_sig <- p.adjust(pvals_cell, method = "BH") < 0.05
+
+cat("\n--- Cell-Level Analysis (WRONG) ---\n")
+cat("DEGs detected:", sum(cell_sig), "\n")
+cat("True positives:", sum(cell_sig[1:50]), "\n")
+cat("False positives:", sum(cell_sig[51:n_genes]), "\n")
+
+cat("\n--- Pseudobulk Analysis (CORRECT) ---\n")
+cat("DEGs detected:", sum(sig), "\n")
+```
+
+## 8. Key Insight
+
+```{r insight}
+# The problem: cell-level tests treat cells as independent
+# But cells from the same donor are correlated
+
+# Compare sample sizes
+cat("\nCell-level: n =", ncol(counts), "observations\n")
+cat("Pseudobulk: n =", ncol(pseudobulk), "observations (correct)\n")
+cat("\nCell-level inflates sample size by", ncol(counts) / ncol(pseudobulk), "x\n")
+```
+
+## Exercise Questions
+
+1. Why does cell-level analysis detect more "DEGs"?
+2. What is the fundamental statistical issue with cell-level DE?
+3. When might you NOT use pseudobulk?
+4. What if one donor has very few cells?
+
+```{r exercises}
+# Your answers here
+
+```
+
+---
+*End of Lab 11*
+

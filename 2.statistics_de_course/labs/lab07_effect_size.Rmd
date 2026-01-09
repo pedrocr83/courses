@@ -1,0 +1,66 @@
+# Lab 7: Effect Size vs Statistical Significance
+
+## Objectives
+
+- See why small p-values can correspond to tiny effects
+- Practice interpreting log2FC with baseline expression
+- Understand shrinkage conceptually (before DESeq2 shrinkage)
+
+## Outputs
+
+- Save plot to `../figures/lab07_effect_vs_pvalue.png`
+
+---
+
+```{r setup, message=FALSE}
+set.seed(123)
+dir.create("../figures", showWarnings = FALSE)
+```
+
+```{r simulate}
+# Simulate 2000 genes with an effect size and a p-value proxy
+n <- 2000
+log2fc <- rnorm(n, mean = 0, sd = 0.5)
+
+# Simulate "mean expression" (log scale)
+mean_expr <- rnorm(n, mean = 5, sd = 1)
+
+# Make p-values smaller when |log2fc| is bigger and mean_expr is higher (toy model)
+z <- abs(log2fc) * (mean_expr / 5) + rnorm(n, 0, 0.2)
+p <- pmin(1, 2 * (1 - pnorm(z)))
+padj <- p.adjust(p, "BH")
+
+df <- data.frame(log2fc = log2fc, mean_expr = mean_expr, p = p, padj = padj)
+```
+
+```{r plot, fig.width=7, fig.height=5}
+plot(df$log2fc, -log10(df$padj),
+     pch = 16, cex = 0.6,
+     col = ifelse(df$padj < 0.05, "steelblue", "grey70"),
+     xlab = "log2 fold change", ylab = "-log10(FDR)",
+     main = "Effect size vs significance (toy example)")
+abline(v = c(-0.25, 0.25), col = "red", lty = 2)
+legend("topright",
+       legend = c("FDR<0.05", "FDR>=0.05", "log2FC cutoff"),
+       col = c("steelblue", "grey70", "red"),
+       pch = c(16, 16, NA), lty = c(NA, NA, 2), bty = "n")
+```
+
+```{r save}
+png("../figures/lab07_effect_vs_pvalue.png", width = 1000, height = 800, res = 150)
+plot(df$log2fc, -log10(df$padj),
+     pch = 16, cex = 0.6,
+     col = ifelse(df$padj < 0.05, "steelblue", "grey70"),
+     xlab = "log2 fold change", ylab = "-log10(FDR)",
+     main = "Effect size vs significance (toy example)")
+abline(v = c(-0.25, 0.25), col = "red", lty = 2)
+dev.off()
+cat("Wrote ../figures/lab07_effect_vs_pvalue.png\n")
+```
+
+## Reflection
+
+- A gene with **very small log2FC** can still be significant in large datasets.
+- Decide (and report) an **effect size threshold** that matches your biology and measurement noise.
+
+
