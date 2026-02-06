@@ -8,7 +8,7 @@
 
 | | |
 |---|---|
-| **Total Duration** | 16-17 weeks (90-110 hours) |
+| **Total Duration** | 17-18 weeks (95-115 hours) |
 | **Format** | Self-paced with hands-on labs |
 | **Level** | Beginner to Advanced |
 | **Prerequisites** | Basic R/Python, command line, genomics concepts |
@@ -46,8 +46,8 @@ CORE ANALYSIS (Weeks 4-10)
    └─ Batch correction & multi-dataset atlases
 
 ADVANCED TOPICS (Weeks 14-17)
-├─ Course 5: Trajectory Analysis (Weeks 14-16)
-│  └─ Pseudotime, RNA velocity, fate prediction
+├─ Course 5: Trajectory Analysis (Weeks 14-17)
+│  └─ Pseudotime, RNA velocity, CellRank 2 multiview fate mapping
 └─ Course 6: Cell-Cell Communication (Weeks 17-20)
    └─ Ligand-receptor inference, signaling networks
 ```
@@ -529,13 +529,15 @@ BiocManager::install(c("SingleR", "celldex", "scmap"))
 
 # Course 5: Trajectory & Pseudotime Analysis
 
-**Duration:** 3 weeks (15-20 hours)  
-**Level:** Intermediate to Advanced  
+**Duration:** 4 weeks (20-25 hours)
+**Level:** Intermediate to Advanced
 **Prerequisites:** Clustering & annotation, basic statistics
+**Updated:** February 2026 — includes CellRank 2 multiview framework
 
 ## Quick Reference
 - **START_HERE:** `5.trajectory_analysis_course/START_HERE.md`
 - **Course Details:** `5.trajectory_analysis_course/course_trajectory_analysis.md`
+- **CellRank 2 Guide:** `5.trajectory_analysis_course/resources/cellrank2_multiview_guide.md`
 
 ## Learning Objectives
 1. Understand when trajectory analysis is appropriate
@@ -543,6 +545,9 @@ BiocManager::install(c("SingleR", "celldex", "scmap"))
 3. Construct and interpret lineage trees
 4. Identify genes changing along trajectories
 5. Apply RNA velocity for directional inference
+6. **Use CellRank 2 for multiview fate mapping** — VelocityKernel, CytoTRACEKernel, PseudotimeKernel, RealTimeKernel
+7. **Combine multiple kernels** for robust fate probability estimation
+8. **Identify terminal states, fate probabilities, and driver genes** using GPCCA
 
 ## Course Structure
 
@@ -567,7 +572,7 @@ BiocManager::install(c("SingleR", "celldex", "scmap"))
 - Combining with embeddings
 - **Lab 3:** Run diffusion pseudotime
 
-### Week 2: Trajectory Inference
+### Week 2: Trajectory Inference Methods
 
 #### Module 4: Monocle 3 (2.5 hrs)
 - UMAP + graph learning
@@ -587,50 +592,90 @@ BiocManager::install(c("SingleR", "celldex", "scmap"))
 - Velocity estimation
 - scVelo models
 - Interpreting arrows
+- Limitations & current challenges
 - **Lab 6:** Compute RNA velocity
 
-### Week 3: Downstream Analysis
+### Week 3: CellRank 2 — Multiview Fate Mapping (NEW)
 
-#### Module 7: Trajectory DE (2 hrs)
+> Based on Weiler & Theis (2026) *Nature Protocols* [doi:10.1038/s41596-025-01314-w](https://doi.org/10.1038/s41596-025-01314-w)
+
+#### Module 7: CellRank 2 Framework Overview (2 hrs)
+- CellRank 1 → CellRank 2 evolution
+- The kernel abstraction: transition matrices from diverse data views
+- Markov chains and GPCCA for macrostate identification
+- **Lab 7:** CellRank 2 overview & API
+
+#### Module 8: VelocityKernel (2 hrs)
+- Transition matrix from RNA velocity
+- Combining with ConnectivityKernel
+- GPCCA terminal states, fate probabilities, driver genes
+- **Lab 8:** VelocityKernel on pancreas data
+
+#### Module 9: CytoTRACEKernel (1.5 hrs)
+- Developmental potential from gene count complexity
+- Fate mapping without RNA velocity
+- **Lab 9A:** CytoTRACEKernel on bone marrow data
+
+#### Module 10: PseudotimeKernel (1.5 hrs)
+- Any pseudotime → CellRank fate mapping
+- Automatic vs manual terminal state selection
+- **Lab 9B:** PseudotimeKernel with DPT input
+
+#### Module 11: RealTimeKernel (1.5 hrs)
+- Optimal transport for time-course data
+- Metabolic labeling approaches
+- **Lab 9C:** RealTimeKernel on time-course data
+
+#### Module 12: Kernel Combination (2 hrs)
+- Weighted kernel addition
+- Multiview analysis: combining complementary data views
+- Evaluating kernel agreement/disagreement
+- **Lab 9D:** Kernel combination & comparison
+
+### Week 4: Downstream Analysis & Advanced Topics
+
+#### Module 13: Trajectory DE (2 hrs)
 - Genes changing along pseudotime
-- GAMs and splines
-- tradeSeq
-- **Lab 7:** Find pseudotime-associated genes
+- GAMs, splines, tradeSeq
+- CellRank driver genes
+- **Lab 10:** Trajectory DE + CellRank driver genes
 
-#### Module 8: Gene Dynamics Visualization (1.5 hrs)
-- Expression heatmaps
-- Gene cascades
-- Branch-specific expression
-- **Lab 8:** Visualize gene dynamics
+#### Module 14: Gene Expression Trends (1.5 hrs)
+- Expression heatmaps along pseudotime
+- CellRank gene trends along fate probabilities
+- **Lab 11:** Visualize gene dynamics
 
-#### Module 9: CellRank (2 hrs)
-- Markov chains for fate prediction
-- Combining velocity with transcriptomics
-- Terminal states
-- **Lab 9:** Predict cell fates
-
-#### Module 10: Method Comparison (1.5 hrs)
-- Benchmark studies
-- Choosing the right method
+#### Module 15: Method Comparison & Best Practices (2 hrs)
+- Benchmark studies (dynverse, CellRank kernel comparisons)
 - Validation strategies
-- **Lab 10:** Compare methods
+- Reporting standards
+- **Lab 12:** Compare methods and kernels
 
 ## Assessments
 - **Assignment 1:** Pseudotime inference comparison (Modules 3-4)
 - **Assignment 2:** RNA velocity analysis (Module 6)
-- **Assignment 3:** Trajectory DE and visualization (Modules 7-8)
-- **Final Project:** Complete trajectory analysis
+- **Assignment 3:** Trajectory DE and visualization (Modules 13-14)
+- **Assignment 4:** CellRank 2 multiview fate mapping (Modules 7-12) — **NEW**
+- **Final Project:** Complete trajectory & fate mapping analysis (250 pts)
 
 ## Methods Summary
 
-| Method | Approach | Branches | Direction |
-|--------|----------|----------|-----------|
-| Diffusion PT | Random walks | No | Needs root |
-| PAGA | Graph abstraction | Yes | Needs root |
-| Monocle 3 | Principal graph | Yes | Needs root |
-| Slingshot | MST + curves | Yes | Needs root |
-| RNA Velocity | Splicing dynamics | Implicit | Intrinsic |
-| CellRank | Markov chains | Yes | From velocity |
+| Method | Approach | Branches | Direction | CellRank Kernel |
+|--------|----------|----------|-----------|-----------------|
+| Diffusion PT | Random walks | No | Needs root | PseudotimeKernel |
+| PAGA | Graph abstraction | Yes | Needs root | — |
+| Monocle 3 | Principal graph | Yes | Needs root | — |
+| Slingshot | MST + curves | Yes | Needs root | — |
+| RNA Velocity | Splicing dynamics | Implicit | Intrinsic | VelocityKernel |
+| CytoTRACE | Gene count complexity | No | Intrinsic | CytoTRACEKernel |
+| Experimental time | Sample time points | No | Known | RealTimeKernel |
+| **CellRank 2** | **Markov chains (any kernel)** | **Yes** | **From kernel** | **Any / Combined** |
+
+## Key References
+- Weiler & Theis (2026) *Nat. Protocols* — CellRank protocol
+- Weiler et al. (2024) *Nat. Methods* — CellRank 2
+- Lange et al. (2022) *Nat. Methods* — CellRank 1
+- Bergen et al. (2020) *Nat. Biotechnol.* — scVelo
 
 ---
 
