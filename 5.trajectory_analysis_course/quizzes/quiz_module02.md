@@ -1,10 +1,12 @@
 # Quiz: Module 2 - Pseudotime Concepts
 
-**10 Questions | Passing: 70%**
+**15 Questions | Passing: 70% | Mix: MC + Short Answer**
 
 ---
 
-## Question 1
+## Part A: Multiple Choice (10 questions)
+
+### Question 1
 What is pseudotime?
 
 - A) Actual experimental time
@@ -12,9 +14,11 @@ What is pseudotime?
 - C) Processing time for analysis
 - D) Cell cycle duration
 
+**Your answer:** _____
+
 ---
 
-## Question 2
+### Question 2
 Pseudotime analysis is appropriate when:
 
 - A) Cells exist in discrete, unrelated states
@@ -22,9 +26,11 @@ Pseudotime analysis is appropriate when:
 - C) All cells are identical
 - D) You have time-series data only
 
+**Your answer:** _____
+
 ---
 
-## Question 3
+### Question 3
 The "root" cell in trajectory analysis represents:
 
 - A) The largest cell
@@ -32,9 +38,11 @@ The "root" cell in trajectory analysis represents:
 - C) A randomly selected cell
 - D) The cell with highest expression
 
+**Your answer:** _____
+
 ---
 
-## Question 4
+### Question 4
 Branching trajectories indicate:
 
 - A) Technical errors
@@ -42,9 +50,11 @@ Branching trajectories indicate:
 - C) Poor data quality
 - D) Incorrect clustering
 
+**Your answer:** _____
+
 ---
 
-## Question 5
+### Question 5
 A key assumption of pseudotime analysis is:
 
 - A) All cells were collected at the same time
@@ -52,9 +62,11 @@ A key assumption of pseudotime analysis is:
 - C) Cells don't change over time
 - D) Gene expression is constant
 
+**Your answer:** _____
+
 ---
 
-## Question 6
+### Question 6
 Why can't we use actual time in single-cell experiments?
 
 - A) Cells are destroyed during sequencing (snapshot data)
@@ -62,9 +74,11 @@ Why can't we use actual time in single-cell experiments?
 - C) Sequencing is instantaneous
 - D) All cells are synchronized
 
+**Your answer:** _____
+
 ---
 
-## Question 7
+### Question 7
 Pseudotime values typically range from:
 
 - A) -100 to 100
@@ -72,9 +86,11 @@ Pseudotime values typically range from:
 - C) Only integers
 - D) Negative values only
 
+**Your answer:** _____
+
 ---
 
-## Question 8
+### Question 8
 What biological processes are suitable for trajectory analysis?
 
 - A) Static tissue samples
@@ -82,9 +98,11 @@ What biological processes are suitable for trajectory analysis?
 - C) Only embryonic development
 - D) Only cancer
 
+**Your answer:** _____
+
 ---
 
-## Question 9
+### Question 9
 Selecting the wrong root cell results in:
 
 - A) No trajectory
@@ -92,9 +110,11 @@ Selecting the wrong root cell results in:
 - C) Better results
 - D) Faster computation
 
+**Your answer:** _____
+
 ---
 
-## Question 10
+### Question 10
 Validating pseudotime ordering can be done by:
 
 - A) Checking known early/late marker genes
@@ -102,18 +122,64 @@ Validating pseudotime ordering can be done by:
 - C) Counting clusters
 - D) Ignoring biology
 
+**Your answer:** _____
+
+---
+
+## Part B: Short Answer (5 questions)
+
+### Question 11
+In one sentence, explain why single-cell data is "snapshot" data and what that implies for trajectory analysis.
+
+**Your answer:**
+
+---
+
+### Question 12
+How would you choose the root cell for a differentiation trajectory?
+
+**Your answer:**
+
+---
+
+### Question 13
+What does a "linear" vs "branching" trajectory tell you about the biological process?
+
+**Your answer:**
+
+---
+
+### Question 14
+Name two methods for inferring pseudotime (e.g., DPT, Monocle, Slingshot).
+
+**Your answer:**
+
+---
+
+### Question 15
+Why is root selection critical, and what happens if it is wrong?
+
+**Your answer:**
+
 ---
 
 ## Answer Key
 
-1. B
-2. B
-3. B
-4. B
-5. B
-6. A
-7. B
-8. B
-9. B
-10. A
+### Part A
+1. B  
+2. B  
+3. B  
+4. B  
+5. B  
+6. A  
+7. B  
+8. B  
+9. B  
+10. A  
 
+### Part B (sample answers)
+11. Cells are lysed during sequencing; we get one timepoint per cell. We infer ordering from expression similarity.  
+12. Use prior knowledge (e.g. stem cell markers), or pick the cell type known to be earliest (e.g. progenitor).  
+13. Linear: one path. Branching: multiple fates; cells can commit to different endpoints.  
+14. Diffusion pseudotime (DPT), Monocle 3, Slingshot, destiny, Palantir.  
+15. Root defines the start; wrong root flips or distorts the ordering; validation with known early/late markers is essential.

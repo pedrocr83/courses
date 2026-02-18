@@ -284,6 +284,14 @@ courses/
 ├── 6.cell_cell_communication_course/
 │   └── modules/
 │       └── module13_ccc_validation.md   [NEW]
+├── config/                               [NEW]
+│   ├── notebooklm_courses.yaml          # NotebookLM upload config
+│   └── quiz_template_detailed.md        # Template for detailed quizzes
+├── scripts/                              [NEW]
+│   ├── notebooklm_upload.py            # Upload courses to NotebookLM
+│   └── requirements-notebooklm.txt     # Optional: NotebookLM deps
+├── [course]/resources/reading/           [NEW - per course]
+│   └── curated_readings.md             # Recommended papers
 └── docs/
     ├── MASTER_TRAINING_GUIDE.md
     ├── COURSE_IMPROVEMENT_SUGGESTIONS.md
@@ -355,6 +363,52 @@ pip install scanpy anndata scvi-tools harmonypy cellrank scvelo \
 ### Comprehensive Guides
 - [Master Training Guide](docs/MASTER_TRAINING_GUIDE.md) - Complete program overview
 - [Improvement Suggestions](docs/COURSE_IMPROVEMENT_SUGGESTIONS.md) - Future enhancements
+
+---
+
+## 🎧 Listen & Learn with NotebookLM
+
+Upload course content to [Google NotebookLM](https://notebooklm.google.com) to generate **audio overviews (podcasts)**, quizzes, and flashcards. Listen while commuting or ask questions about your materials.
+
+### Setup
+
+```bash
+pip install -r scripts/requirements-notebooklm.txt
+playwright install chromium
+notebooklm login   # one-time Google auth (opens browser)
+```
+
+### Usage
+
+```bash
+# Upload a single course
+python3 scripts/notebooklm_upload.py 1.single_cell_processing_course
+
+# Upload all courses
+python3 scripts/notebooklm_upload.py all
+
+# Upload and generate a podcast
+python3 scripts/notebooklm_upload.py 1.single_cell_processing_course --generate audio
+
+# Preview files without uploading
+python3 scripts/notebooklm_upload.py 1.single_cell_processing_course --dry-run
+```
+
+### What Gets Uploaded
+
+Each course uploads: START_HERE, study guides, modules, resources, **reading material** (`resources/reading/`), and **quizzes**. Edit `config/notebooklm_courses.yaml` to customize sources.
+
+### Reading Material
+
+Each course has `resources/reading/curated_readings.md` with recommended papers. Add more `.md` files or PDFs to `[course]/resources/reading/`—they will be included when you upload.
+
+### Detailed Quizzes
+
+All module quizzes use a detailed format (15 questions: 10 MC + 5 short answer). Template: `config/quiz_template_detailed.md`.
+
+### Alternative: Claude Skill
+
+[anything-to-notebooklm](https://github.com/joeseesun/anything-to-notebooklm) – Claude Code skill for turning URLs, PDFs, and markdown into podcasts/quizzes via natural language.
 
 ---
 

@@ -29,7 +29,7 @@ print(x + y * 2)
 **C)** 20  
 **D)** Error  
 
-**Your answer:** _____
+**Your answer:** A
 
 ---
 
@@ -39,6 +39,14 @@ Write code to create a list of numbers from 1 to 10 and print only the even numb
 **Your code:**
 ```python
 # Write your answer here
+list1 = list()
+for i in range(1,11):
+  list1.append(i)
+
+for l in list1:
+  if l % 2 == 0:
+    print(l)
+
 ```
 
 ---
@@ -51,7 +59,7 @@ Which library is most commonly used to read CSV files in Python for data analysi
 **C)** numpy  
 **D)** matplotlib  
 
-**Your answer:** _____
+**Your answer:** B
 
 ---
 
@@ -61,6 +69,7 @@ Given a pandas DataFrame `df` with a column 'score', write code to filter rows w
 **Your code:**
 ```python
 # Write your answer here
+df[df['score'] > 50]
 ```
 
 ---
@@ -73,7 +82,7 @@ What library would you use to create a basic scatter plot in Python?
 **C)** matplotlib or seaborn  
 **D)** scipy  
 
-**Your answer:** _____
+**Your answer:** C
 
 ---
 
@@ -83,6 +92,11 @@ Write a function called `calculate_mean` that takes a list of numbers and return
 **Your code:**
 ```python
 # Write your answer here
+def calculate_mean(list1):
+  sum = 0
+  for i in list1:
+    sum += i
+  return sum/len(list1)
 ```
 
 ---
@@ -99,7 +113,7 @@ else:
     print("Child")
 ```
 
-**Your answer:** _____
+**Your answer:** Adult
 
 ---
 
@@ -109,6 +123,9 @@ Write code to print the square of each number from 1 to 5.
 **Your code:**
 ```python
 # Write your answer here
+for i in range(1, 6):
+  print(i**2)
+
 ```
 
 ---
@@ -119,6 +136,7 @@ Given a dictionary `genes = {'TP53': 100, 'BRCA1': 50, 'MYC': 75}`, write code t
 **Your code:**
 ```python
 # Write your answer here
+print(genes['BRCA1'])
 ```
 
 ---
@@ -131,7 +149,7 @@ What type of error would occur if you try to access `my_list[10]` when `my_list`
 **C)** ValueError  
 **D)** KeyError  
 
-**Your answer:** _____
+**Your answer:** B
 
 ---
 
@@ -149,7 +167,7 @@ print(x + y * 2)
 **C)** 20  
 **D)** Error  
 
-**Your answer:** _____
+**Your answer:** A
 
 ---
 
@@ -159,6 +177,7 @@ Write code to create a vector of numbers from 1 to 10 and print only the even nu
 **Your code:**
 ```r
 # Write your answer here
+print(seq(2, 10, by = 2))
 ```
 
 ---
@@ -171,7 +190,7 @@ Which function is commonly used to read CSV files in R?
 **C)** import.csv()  
 **D)** get.csv()  
 
-**Your answer:** _____
+**Your answer:** A
 
 ---
 
@@ -181,6 +200,7 @@ Given a data frame `df` with a column 'score', write code to filter rows where s
 **Your code:**
 ```r
 # Write your answer here
+filtered_df <- df[df$score > 50, ]
 ```
 
 ---
@@ -193,7 +213,7 @@ What is the basic plotting system in R called?
 **C)** seaborn  
 **D)** plotly  
 
-**Your answer:** _____
+**Your answer:** B
 
 ---
 
@@ -203,6 +223,10 @@ Write a function called `calculate_mean` that takes a vector of numbers and retu
 **Your code:**
 ```r
 # Write your answer here
+calculate_mean <- function(x) {
+  average <- sum(x) / length(x)
+  return(average)
+}
 ```
 
 ---
@@ -220,7 +244,7 @@ if (age >= 18) {
 }
 ```
 
-**Your answer:** _____
+**Your answer:** Adult
 
 ---
 
@@ -230,6 +254,9 @@ Write code to print the square of each number from 1 to 5.
 **Your code:**
 ```r
 # Write your answer here
+numbers <- 1:5
+squares <- numbers^2
+print(squares)
 ```
 
 ---
@@ -240,6 +267,7 @@ Given a list `genes <- list(TP53=100, BRCA1=50, MYC=75)`, write code to get the 
 **Your code:**
 ```r
 # Write your answer here
+expression_val <- genes$BRCA1
 ```
 
 ---
@@ -252,7 +280,7 @@ What function do you use to install packages from CRAN in R?
 **C)** load.package()  
 **D)** get.package()  
 
-**Your answer:** _____
+**Your answer:** B
 
 ---
 

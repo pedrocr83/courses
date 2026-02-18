@@ -1,0 +1,74 @@
+# NotebookLM integration config for single-cell RNA-seq courses
+# Used by scripts/notebooklm_upload.py to know which files to include per course
+
+courses:
+  prerequisites:
+    name: "Prerequisites Assessment"
+    sources:
+      - "0.prerequisites_assessment/START_HERE.md"
+      - "0.prerequisites_assessment/resources/programming_primer.md"
+      - "0.prerequisites_assessment/resources/command_line_primer.md"
+      - "0.prerequisites_assessment/resources/biology_stats_primer.md"
+      - "0.prerequisites_assessment/resources/git_primer.md"
+
+  1.single_cell_processing_course:
+    name: "Single-Cell Processing"
+    sources:
+      - "1.single_cell_processing_course/START_HERE.md"
+      - "1.single_cell_processing_course/resources/study_guide.md"
+      - "1.single_cell_processing_course/resources/qc_decision_framework.md"
+      - "1.single_cell_processing_course/resources/troubleshooting_guide.md"
+    sources_glob:
+      - "1.single_cell_processing_course/modules/*.md"
+      - "1.single_cell_processing_course/resources/reading/*.md"
+      - "1.single_cell_processing_course/quizzes/*.md"
+
+  2.statistics_de_course:
+    name: "Statistics & Differential Expression"
+    sources:
+      - "2.statistics_de_course/START_HERE.md"
+      - "2.statistics_de_course/resources/study_guide.md"
+    sources_glob:
+      - "2.statistics_de_course/modules/*.md"
+      - "2.statistics_de_course/resources/reading/*.md"
+      - "2.statistics_de_course/quizzes/*.md"
+
+  3.clustering_annotation_course:
+    name: "Clustering & Annotation"
+    sources:
+      - "3.clustering_annotation_course/START_HERE.md"
+      - "3.clustering_annotation_course/resources/annotation_confidence_framework.md"
+    sources_glob:
+      - "3.clustering_annotation_course/modules/*.md"
+      - "3.clustering_annotation_course/resources/reading/*.md"
+      - "3.clustering_annotation_course/quizzes/*.md"
+
+  4.data_integration_course:
+    name: "Data Integration"
+    sources:
+      - "4.data_integration_course/START_HERE.md"
+      - "4.data_integration_course/resources/integration_method_decision_guide.md"
+    sources_glob:
+      - "4.data_integration_course/modules/*.md"
+      - "4.data_integration_course/resources/reading/*.md"
+      - "4.data_integration_course/quizzes/*.md"
+
+  5.trajectory_analysis_course:
+    name: "Trajectory Analysis"
+    sources:
+      - "5.trajectory_analysis_course/START_HERE.md"
+      - "5.trajectory_analysis_course/resources/cellrank2_multiview_guide.md"
+    sources_glob:
+      - "5.trajectory_analysis_course/modules/*.md"
+      - "5.trajectory_analysis_course/resources/reading/*.md"
+      - "5.trajectory_analysis_course/quizzes/*.md"
+
+  6.cell_cell_communication_course:
+    name: "Cell-Cell Communication"
+    sources:
+      - "6.cell_cell_communication_course/START_HERE.md"
+      - "6.cell_cell_communication_course/resources/study_guide.md"
+    sources_glob:
+      - "6.cell_cell_communication_course/modules/*.md"
+      - "6.cell_cell_communication_course/resources/reading/*.md"
+      - "6.cell_cell_communication_course/quizzes/*.md"

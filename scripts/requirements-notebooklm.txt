@@ -1,0 +1,6 @@
+# Optional deps for NotebookLM integration (scripts/notebooklm_upload.py)
+# Install: pip install -r scripts/requirements-notebooklm.txt
+# Then: playwright install chromium && notebooklm login
+
+notebooklm-py[browser]
+pyyaml

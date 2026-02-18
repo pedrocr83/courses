@@ -1,10 +1,12 @@
 # Quiz: Module 2 - Diagnosing Batch Effects
 
-**10 Questions | Passing: 70%**
+**15 Questions | Passing: 70% | Mix: MC + Short Answer**
 
 ---
 
-## Question 1
+## Part A: Multiple Choice (10 questions)
+
+### Question 1
 What is a batch effect?
 
 - A) Biological differences between cell types
@@ -12,9 +14,11 @@ What is a batch effect?
 - C) Random noise
 - D) Sequencing errors only
 
+**Your answer:** _____
+
 ---
 
-## Question 2
+### Question 2
 Which visualization best reveals batch effects?
 
 - A) Violin plot of gene expression
@@ -22,9 +26,11 @@ Which visualization best reveals batch effects?
 - C) Heatmap of top genes
 - D) Bar chart of cell counts
 
+**Your answer:** _____
+
 ---
 
-## Question 3
+### Question 3
 LISI (Local Inverse Simpson Index) measures:
 
 - A) Gene expression levels
@@ -32,9 +38,11 @@ LISI (Local Inverse Simpson Index) measures:
 - C) Sequencing quality
 - D) Number of clusters
 
+**Your answer:** _____
+
 ---
 
-## Question 4
+### Question 4
 High iLISI (integration LISI) indicates:
 
 - A) Poor batch mixing
@@ -42,9 +50,11 @@ High iLISI (integration LISI) indicates:
 - C) Strong biological signal
 - D) Low cell quality
 
+**Your answer:** _____
+
 ---
 
-## Question 5
+### Question 5
 cLISI (cell-type LISI) should be:
 
 - A) High (mixed cell types locally)
@@ -52,9 +62,11 @@ cLISI (cell-type LISI) should be:
 - C) Equal to iLISI
 - D) Zero
 
+**Your answer:** _____
+
 ---
 
-## Question 6
+### Question 6
 kBET tests whether:
 
 - A) Genes are differentially expressed
@@ -62,9 +74,11 @@ kBET tests whether:
 - C) Cells are properly normalized
 - D) Clustering is optimal
 
+**Your answer:** _____
+
 ---
 
-## Question 7
+### Question 7
 When is batch correction NOT needed?
 
 - A) Never - always correct
@@ -72,9 +86,11 @@ When is batch correction NOT needed?
 - C) When you have multiple samples
 - D) For large datasets only
 
+**Your answer:** _____
+
 ---
 
-## Question 8
+### Question 8
 Over-correction of batch effects can cause:
 
 - A) Better visualization
@@ -82,9 +98,11 @@ Over-correction of batch effects can cause:
 - C) Faster computation
 - D) More accurate annotation
 
+**Your answer:** _____
+
 ---
 
-## Question 9
+### Question 9
 Confounding occurs when:
 
 - A) Batch and biological condition are not separable
@@ -92,9 +110,11 @@ Confounding occurs when:
 - C) The wrong clustering is used
 - D) Genes are lowly expressed
 
+**Your answer:** _____
+
 ---
 
-## Question 10
+### Question 10
 Before integrating, you should always:
 
 - A) Remove all batch information
@@ -102,18 +122,64 @@ Before integrating, you should always:
 - C) Combine all raw data
 - D) Annotate cell types
 
+**Your answer:** _____
+
+---
+
+## Part B: Short Answer (5 questions)
+
+### Question 11
+Explain the difference between iLISI and cLISI, and what each should be after good integration.
+
+**Your answer:**
+
+---
+
+### Question 12
+Why is it important to QC each batch separately before integration?
+
+**Your answer:**
+
+---
+
+### Question 13
+What does "confounding" mean in the context of batch and condition, and why is it problematic?
+
+**Your answer:**
+
+---
+
+### Question 14
+Name one quantitative metric and one visual check for diagnosing batch effects.
+
+**Your answer:**
+
+---
+
+### Question 15
+When might you choose NOT to integrate datasets despite batch effects?
+
+**Your answer:**
+
 ---
 
 ## Answer Key
 
-1. B
-2. B
-3. B
-4. B
-5. B
-6. B
-7. B
-8. B
-9. A
-10. B
+### Part A
+1. B  
+2. B  
+3. B  
+4. B  
+5. B  
+6. B  
+7. B  
+8. B  
+9. A  
+10. B  
 
+### Part B (sample answers)
+11. iLISI: batch mixing – high = batches well mixed locally. cLISI: cell-type conservation – low = same cell type stays together.  
+12. Bad cells in one batch can distort integration; each batch should be clean before combining.  
+13. Confounding: batch and condition are correlated (e.g. all control from batch 1, all treatment from batch 2). You can't tell if differences are biological or technical.  
+14. Metric: LISI, kBET, graph connectivity. Visual: UMAP colored by batch, PCA by batch.  
+15. When batch and biology are confounded; when integration would remove real biological signal; when batches are fundamentally different (e.g. different technologies).
