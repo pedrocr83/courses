@@ -459,6 +459,35 @@ All assignments are graded on 5 dimensions:
 
 ---
 
+### Course 7: LLMs, Deep Learning & Performance
+
+#### Assignment 1: Inference Concepts (Part 1)
+
+**Total: 100 points**
+
+| Component | Points | Criteria |
+|-----------|--------|----------|
+| **Batching** | 25 | Clear explanation; why it matters for inference |
+| **Memory** | 25 | Weights, activations, KV cache; why it matters |
+| **GPU Saturation** | 20 | Relation to throughput and cost |
+| **Biology Example** | 20 | Concrete gene/cell model example (batching or memory) |
+| **Clarity & Documentation** | 10 | Own words; could explain in 2-minute summary |
+
+#### Assignment 2: Biology Application (Part 2)
+
+**Total: 100 points**
+
+| Component | Points | Criteria |
+|-----------|--------|----------|
+| **Workload Description** | 20 | Model, inputs, throughput/latency goal |
+| **Batching** | 20 | How inputs are batched and why |
+| **Memory** | 20 | What to watch; OOM risk |
+| **Scaling** | 20 | Single GPU vs MIG vs sharding; rationale |
+| **Trade-off** | 10 | One stated trade-off (e.g. latency vs throughput) |
+| **Clarity** | 10 | Design document clear and specific |
+
+---
+
 ## Final Project Rubrics
 
 ### Final Project - General Template (100 points)

@@ -45,11 +45,14 @@ CORE ANALYSIS (Weeks 4-10)
 └─ Course 4: Data Integration (Weeks 11-13)
    └─ Batch correction & multi-dataset atlases
 
-ADVANCED TOPICS (Weeks 14-17)
+ADVANCED TOPICS (Weeks 14-20)
 ├─ Course 5: Trajectory Analysis (Weeks 14-17)
 │  └─ Pseudotime, RNA velocity, CellRank 2 multiview fate mapping
-└─ Course 6: Cell-Cell Communication (Weeks 17-20)
-   └─ Ligand-receptor inference, signaling networks
+├─ Course 6: Cell-Cell Communication (Weeks 17-20)
+│  └─ Ligand-receptor inference, signaling networks
+└─ Course 7: LLMs, Deep Learning & Performance (Weeks 20-24)
+   └─ Part 1: Core inference (batching, memory, GPU, MIG, parallelization)
+   └─ Part 2: Biology application (single-cell/omics DL)
 ```
 
 ---
@@ -61,6 +64,7 @@ graph TD
     A[Course 1: Processing] --> B[Course 2: Statistics/DE]
     A --> C[Course 3: Clustering/Annotation]
     A --> D[Course 4: Data Integration]
+    A --> G[Course 7: LLMs/DL Performance]
     C --> B
     C --> D
     B --> E[Course 5: Trajectory Analysis]
@@ -77,6 +81,7 @@ graph TD
 3. Course 4
 4. Course 5
 5. Course 6
+6. Course 7 (after Course 1; Courses 2/3 recommended for biology context)
 
 ---
 
@@ -807,6 +812,34 @@ pip install cellphonedb scanpy liana
 
 ---
 
+# Course 7: LLMs, Deep Learning & Performance
+
+**Duration:** 3–4 weeks (15–22 hours)  
+**Level:** Intermediate  
+**Prerequisites:** Course 1 (single-cell processing); Courses 2/3 recommended for biology context
+
+## Quick Reference
+- **START_HERE:** `7.llm_dl_performance_course/START_HERE.md`
+- **Course Details:** `7.llm_dl_performance_course/course_llm_dl_performance.md`
+- **Curated Readings:** `7.llm_dl_performance_course/resources/reading/curated_readings.md`
+
+## Learning Objectives (Part 1 — Core inference)
+1. Explain why efficient inference is a major barrier to LLMs in production
+2. Describe batching, memory management, concurrency, GPU saturation, sharding/MIG, parallelization
+3. Relate model and hardware to inference bottlenecks
+
+## Learning Objectives (Part 2 — Biology application)
+4. Apply Part 1 concepts to single-cell/omics (gene-language models, cell embeddings)
+5. Reason about batching and memory for large atlases and model serving
+6. Identify when GPU saturation, MIG, or sharding matter in biology pipelines
+
+## Course Structure
+- **Part 1:** Modules 1–5 (models & hardware, batching & memory, concurrency & GPU saturation, sharding & MIG, parallelization)
+- **Part 2:** Modules 6–7 (single-cell & omics DL; applying inference in biology)
+- **Resources:** Curated courses/videos/blogs (CS336, GPU MODE, NVIDIA, inference patterns, perf engineering)
+
+---
+
 # Cross-Course Integration
 
 ## Suggested Full-Program Schedule
@@ -815,7 +848,7 @@ pip install cellphonedb scanpy liana
 - **Month 1:** Course 1 + Course 2 (Weeks 1-4)
 - **Month 2:** Course 3 + Course 4 (Weeks 5-8)
 - **Month 3:** Course 5 (Weeks 9-12)
-- **Month 4:** Course 6 (Weeks 13-16)
+- **Month 4:** Course 6 + Course 7 (Weeks 13-18)
 
 ### 6-Month Standard Track (12-15 hrs/week)
 - **Months 1-1.5:** Course 1
@@ -824,9 +857,10 @@ pip install cellphonedb scanpy liana
 - **Months 4-5:** Course 4
 - **Months 5-5.5:** Course 5
 - **Months 5.5-6.5:** Course 6
+- **Month 6.5-7:** Course 7 (optional; can follow Course 1)
 
 ### 9-Month Relaxed Track (8-10 hrs/week)
-- Linear progression through all 6 courses with extra time for practice
+- Linear progression through all 7 courses with extra time for practice
 
 ## Capstone Project
 
@@ -839,6 +873,7 @@ After completing all courses, consider a final integrative capstone project:
 4. Integrate multiple batches (Course 4)
 5. Identify developmental trajectories (Course 5)
 6. Analyze cell-cell communication networks (Course 6)
+7. (Optional) Apply inference/perf concepts to a biology DL use case (Course 7)
 
 **Deliverables:**
 - Complete analysis pipeline (reproducible code)
@@ -878,14 +913,14 @@ After completing all courses, consider a final integrative capstone project:
 
 To earn the **Complete Single-Cell RNA-seq Analysis Certificate**, you must:
 
-- [ ] Complete all 6 courses with ≥70% on quizzes
-- [ ] Submit all practical assignments (20 total)
-- [ ] Complete all 6 final projects
+- [ ] Complete all 7 courses with ≥70% on quizzes
+- [ ] Submit all practical assignments (including Course 7 assignments)
+- [ ] Complete all final projects (Courses 1–6; Course 7 as applicable)
 - [ ] Complete capstone integrative project
 - [ ] Document all analyses with reproducible code
 - [ ] Create public repository showcasing your work
 
-**Estimated Total Time:** 90-110 hours over 16-20 weeks
+**Estimated Total Time:** 95-115 hours over 17-24 weeks (including Course 7)
 
 ---
 

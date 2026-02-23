@@ -72,3 +72,13 @@ courses:
       - "6.cell_cell_communication_course/modules/*.md"
       - "6.cell_cell_communication_course/resources/reading/*.md"
       - "6.cell_cell_communication_course/quizzes/*.md"
+
+  7.llm_dl_performance_course:
+    name: "LLMs, Deep Learning & Performance"
+    sources:
+      - "7.llm_dl_performance_course/START_HERE.md"
+      - "7.llm_dl_performance_course/course_llm_dl_performance.md"
+    sources_glob:
+      - "7.llm_dl_performance_course/modules/*.md"
+      - "7.llm_dl_performance_course/resources/reading/*.md"
+      - "7.llm_dl_performance_course/quizzes/*.md"

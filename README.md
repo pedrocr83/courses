@@ -6,7 +6,7 @@
 
 ## 🎯 Program Overview
 
-This curriculum provides complete training in single-cell RNA-seq analysis through **6 progressive courses** covering data processing, statistical analysis, clustering, integration, trajectory inference, and cell-cell communication.
+This curriculum provides complete training in single-cell RNA-seq analysis through **7 progressive courses** covering data processing, statistical analysis, clustering, integration, trajectory inference, cell-cell communication, and **LLMs/deep learning performance** (Course 7: intersection with biology).
 
 **Total Duration:** 16-20 weeks (90-110 hours)  
 **Format:** Self-paced with hands-on labs  
@@ -137,6 +137,23 @@ From expression to interaction networks:
 
 **🆕 NEW RESOURCES:**
 - [CCC Validation Module](6.cell_cell_communication_course/modules/module13_ccc_validation.md) - From prediction to experimental validation
+
+---
+
+### **Course 7: LLMs, Deep Learning & Performance**
+**Duration:** 3–4 weeks (15–22 hours)  
+**Location:** `7.llm_dl_performance_course/`
+
+Efficient inference and AI performance at the intersection with biology:
+- **Part 1:** Core inference (batching, memory, concurrency, GPU saturation, sharding/MIG, parallelization)
+- **Part 2:** Biology application track (single-cell & omics DL; applying inference to gene/cell models)
+
+**Prerequisites:** Course 1; Courses 2/3 recommended.
+
+**📍 START:** [`7.llm_dl_performance_course/START_HERE.md`](7.llm_dl_performance_course/START_HERE.md)
+
+**Resources:**
+- [Curated readings](7.llm_dl_performance_course/resources/reading/curated_readings.md) — courses, videos, blogs (CS336, GPU MODE, NVIDIA, inference patterns, perf engineering)
 
 ---
 
@@ -284,6 +301,16 @@ courses/
 ├── 6.cell_cell_communication_course/
 │   └── modules/
 │       └── module13_ccc_validation.md   [NEW]
+├── 7.llm_dl_performance_course/          [NEW]
+│   ├── START_HERE.md
+│   ├── course_llm_dl_performance.md
+│   ├── setup.md
+│   ├── glossary.md
+│   ├── modules/                          (Part 1: core inference; Part 2: biology)
+│   ├── resources/reading/curated_readings.md
+│   ├── quizzes/
+│   ├── assignments/
+│   └── labs/README.md
 ├── config/                               [NEW]
 │   ├── notebooklm_courses.yaml          # NotebookLM upload config
 │   └── quiz_template_detailed.md        # Template for detailed quizzes
